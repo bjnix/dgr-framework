@@ -21,30 +21,40 @@ GLEW_INC=-I/usr/local/glew/1.9.0/include
 GLEW_LIB=-L/usr/local/glew/1.9.0/lib -Wl,-Bstatic -lGLEW -Wl,-Bdynamic
 endif
 
-ALL_INC=${GLEW_INC}
-ALL_LIB=${GLEW_LIB} -lglut -lX11 -lGL -lGLU -lstdc++ -lc -pthread 
+ALL_INC=$(GLEW_INC)
+
 
 MUTSOURCE=DGRMutant.cpp
 RLYSOURCE=DGRRelay.cpp
 
 CC=g++
 
-FLAGS=-fpermissive -O2 -g -Wall
+CCFLAGS=-fpermissive -O2 -g -Wall
 
 
-all: $(SLVEXEC) $(RLYEXEC) $(MASEXEC)
+all: all_linux
+
+#target specific settings
+all_linux:  LDFLAGS = $(GLEW_LIB) -lglut -lX11 -lGL -lGLU -lstdc++ -lc -pthread 
+all_linux clean_linux: SYSTEM = clean_linux
+all_osx: LDFLAGS = $(GLEW_LIB) -framework GLUT -framework OpenGL 
+all_win32:
+
+
+
+all_linux all_osx all_win32: $(SLVEXEC) $(RLYEXEC) $(MASEXEC)
 
 $(MASEXEC): $(MUTSOURCE) $(HEADERS)
 	@echo "=== COMPILING MASTER ==="
-	$(CC) -DDGR_MASTER=1 $(FLAGS) $(MUTSOURCE) -o $(MASEXEC) $(ALL_INC) $(ALL_LIB)
+	$(CC) -DDGR_MASTER=1 $(FLAGS) $(MUTSOURCE) -o $(MASEXEC) $(ALL_INC) $(LDFLAGS)
 	@echo "=== COMPILING SLAVE ==="
-	$(CC) $(FLAGS) $(MUTSOURCE) -o $(SLVEXEC) $(ALL_INC) $(ALL_LIB)
+	$(CC) $(CCFLAGS) $(MUTSOURCE) -o $(SLVEXEC) $(ALL_INC) $(LDFLAGS)
 
 $(SLVEXEC): $(MASEXEC)
 
 $(RLYEXEC): $(RLYSOURCE)
 	@echo "=== COMPILING RELAY ==="
-	$(CC) $(FLAGS) $(RLYSOURCE) -o $(RLYEXEC) $(ALL_INC) $(ALL_LIB)
+	$(CC) $(FLAGS) $(RLYSOURCE) -o $(RLYEXEC) $(ALL_INC) $(LDFLAGS)
 
 clean:
 	rm -f $(SLVEXEC) $(RLYEXEC) $(MASEXEC) *.o

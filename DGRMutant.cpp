@@ -1,8 +1,22 @@
 // Authors:
 // James Walker   jwwalker at mtu dot edu
 // Scott A. Kuhl  kuhl at mtu dot edu
+// Brent J Nix	 bjnix at mtu dot edu
 
-#include <GL/glut.h>
+
+//Cross compilation accomodation 
+#ifdef _WIN64
+    //define for 64 bit Windows
+#elif _WIN32
+    //define for 32 bit Windows
+#elif __APPLE__ && __MACH__
+    #include <OpenGL/gl.h>
+    #include <OpenGL/glu.h> 
+    #include <GLUT/glut.h>
+#elif __linux__
+    #include <GL/glut.h>
+#endif
+
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
