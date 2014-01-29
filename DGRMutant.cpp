@@ -95,7 +95,8 @@ void display(void) {
 #ifdef DGR_MASTER   // All code that updates state variables should be exclusive to the MASTER.
                     // Forbidding the SLAVES from updating state variables and only getting them
                     // from the MASTER is what guarantees that the processes all stay synchronized.
-  rotation += 0.1f;
+  rotation += 1.0f;
+
 #else  // The slave automatically shuts itself off if it hasn't received
        // any packets within a few seconds (it gives itself longer if it
        // hasn't received any packets at all yet)
@@ -131,8 +132,46 @@ void display(void) {
   gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
   glTranslatef(0,0,-30);
   glScalef (8.0, 8.0, 8.0);
+  glColor3ub(255,255,0);
   glRotatef(rotation, 0.0f, 1.0f, 0.0f);
   glutWireCube (1.0);
+  glutWireCube (2.5);
+  glutWireCube (3.25);
+  glutWireCube (.6);
+  glutWireCube (4.1);
+  glutWireCube (.2);
+  glColor3ub(0,255,0);
+  glRotatef(rotation, 0.0f,0.0f,1.0f);
+  glutWireCube (.5);
+  glutWireCube (4);
+  glutWireCube (.1);
+  glutWireCube(1.6);
+  glutWireCube(3.1);
+  glutWireCube(4.6);
+  glColor3ub(0,0,225);
+  glRotatef(rotation, 1.0f, 0.0f,0.0f);
+  glutWireCube(2.0);
+  glutWireCube(.25);
+  glutWireCube(.325);
+  glutWireCube (1.1);
+  glutWireCube (2.6);
+  glutWireCube (3.35);
+  glColor3ub(0,255,225);
+  glRotatef(rotation, 1.0f,0.0f,1.0f);
+  glutWireCube(1.5);
+  glutWireCube(3);
+  glutWireCube(4.5);
+  glutWireCube(2.1);
+  glutWireCube(.36);
+  glutWireCube(.425);
+  glColor3ub(210,240,50);
+  glRotatef(rotation, 1.0f,0.1f,0.0f);
+  glutWireCube(3.5);
+  glutWireCube(1.25);
+  glutWireCube(.125);
+  glutWireCube(1.6);
+  glutWireCube(3.1);
+  glutWireCube(4.6);
   glutSwapBuffers();
   glutPostRedisplay();
 }
