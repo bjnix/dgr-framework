@@ -213,7 +213,7 @@ void receiver() {
     for(auto splitsIter = splits.begin(); splitsIter != splits.end(); splitsIter++)
     {
       packet = split(*splitsIter, '`');
-      InputMap.at(packet[0]) = InputMap.at(packet[1]);
+      InputMap.at(packet[0]) = (float)atof(packet[1]).c_str();
       
     }
   }
