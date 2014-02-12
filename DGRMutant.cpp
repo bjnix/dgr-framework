@@ -174,10 +174,10 @@ void sender() {
           length = 0;
       }
       length += sprintf(buf+length, "%s%c%f%c",it->first.c_str(),'`',it->second,'~');
-	printf("sending: %s\n",buf);
+	//printf("sending: %s\n",buf);
     }
 
-  }
+  
 
       // NOTE: This simple example only sends/receives a single value (rotation),
       // but it sends rotation twice, separated by a ~ in order to demonstrate the
@@ -186,6 +186,7 @@ void sender() {
     if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
       slen) == -1) error ("ERROR sendto()");
     usleep(32000);
+    }
 }
 
 
@@ -197,14 +198,14 @@ void receiver() {
   char buf[BUFLEN];
   vector<string> splits;
   vector<string> packet;
-  printf("in receiver");
+  //printf("in receiver");
   while (true) {
     if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
       &slen) == -1) error("ERROR recvfrom()");
     receivedPacket = true;
     framesPassed = 0;
     string itrmdt(buf);
-    printf("recieved: %s\n", buf);
+    //printf("recieved: %s\n", buf);
     splits = split(itrmdt, '~');
     // NOTE: This simple example only sends/receives a single value (rotation),
     // but it sends rotation twice, separated by a ~ in order to demonstrate the
@@ -213,7 +214,7 @@ void receiver() {
     for(auto splitsIter = splits.begin(); splitsIter != splits.end(); splitsIter++)
     {
       packet = split(*splitsIter, '`');
-      InputMap.at(packet[0]) = (float)atof(packet[1]).c_str();
+      InputMap.at(packet[0]) = (float)atof(packet[1].c_str());
       
     }
   }

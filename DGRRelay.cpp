@@ -88,20 +88,6 @@ void receiver() {
     receivedPacket = true;
     framesPassed = 0;
 
-    string itrmdt(buf);
-    splits = split(itrmdt, '~');
-
-    // NOTE: This simple example only sends/receives a single value (rotation),
-    // but it sends rotation twice, separated by a ~ in order to demonstrate the
-    // technique of how you can send multiple values separated by ~ and then
-    // get the values back out on the receiver end by splitting along '~'.
-    rotation = (float)atof(splits[0].c_str());
-    rotation = (float)atof(splits[1].c_str());
-
-    printf("I received packet w/ rot data: %f\n", rotation);
-
-    // forward data
-    sprintf(buf, "%f~%f", rotation, rotation);
     if (sendto(s_S, buf, BUFLEN, 0, (struct sockaddr*)&si_other_S,
       slen_S) == -1) error ("ERROR sendto()");
 
