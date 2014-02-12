@@ -17,6 +17,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <map>
 
 #define RELAY_LISTEN_PORT 25885
 #define SLAVE_LISTEN_PORT 25884
@@ -107,7 +108,6 @@ void display(void) {
   InputMap.at("data2") += 2.0f;
   InputMap.at("data3") += 5.0f;
   InputMap.at("data4") += 0.1f;
-  InputMap.at("data4") = ((InputMap.at(data4)*10.0f) % 60.0f)/10.0f;
 
 #else  // The slave automatically shuts itself off if it hasn't received
        // any packets within a few seconds (it gives itself longer if it
@@ -145,13 +145,13 @@ void display(void) {
   glTranslatef(0,0,-30);
   glScalef (8.0, 8.0, 8.0);
   glPushMatrix();
-  glColor3ub((InputMap.at("data2") * 5) % 255,(InputMap.at("data3") *5 % 255,0);
+  glColor3ub(InputMap.at("data2"),InputMap.at("data3"),0);
   glRotatef(InputMap.at("data1"), 0.0f, 1.0f, 0.0f);
   glutWireCube (1.0);
   glPopMatrix();
-  glColor3ub((InputMap.at("data2") * 5) % 255,(InputMap.at("data3") *5 % 255,0);
+  glColor3ub(InputMap.at("data2"),InputMap.at("data3"),0);
   glRotatef(InputMap.at("data1"), 0.0f, 1.0f, 0.0f);
-  glutWireCube (1.0);
+  glutWireCube (InputMap.at("data4"));
 
   
   glutSwapBuffers();
@@ -163,18 +163,20 @@ void display(void) {
 // via UDP packets in an infinite loop.
 void sender() {
   
-  while (true) {
+  while (true) 
+  {
     int length = 0;
-    for(auto it = InputMap.begin();it!= InputMap.end();it++){
+    for(auto it = InputMap.begin();it!= InputMap.end();it++)
+    {
       if(length >= (BUFLEN - 15))
       {
-        if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
-      slen) == -1) error ("ERROR sendto()");
+        if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
           length = 0;
       }
-      length += sprintf(buf+length, "%s%c%f%c",it->first,'US',it->second'GS',);}
-
+      length += sprintf(buf+length, "%s%c%f%c",it->first.c_str(),'`',it->second,'~');
     }
+
+  }
 
       // NOTE: This simple example only sends/receives a single value (rotation),
       // but it sends rotation twice, separated by a ~ in order to demonstrate the
@@ -183,8 +185,8 @@ void sender() {
     if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
       slen) == -1) error ("ERROR sendto()");
     usleep(32000);
-  }
 }
+
 
 #else // if SLAVE:
 
@@ -200,14 +202,14 @@ void receiver() {
     receivedPacket = true;
     framesPassed = 0;
     string itrmdt(buf);
-    splits = split(itrmdt, 'GS');
+    splits = split(itrmdt, '~');
     // NOTE: This simple example only sends/receives a single value (rotation),
     // but it sends rotation twice, separated by a ~ in order to demonstrate the
     // technique of how you can send multiple values separated by ~ and then
     // get the values back out, as shown here.
     for(auto splitsIter = splits.begin(); splitsIter != splits.end(); splitsIter++)
     {
-      packet = split(*splitsIter, 'US');
+      packet = split(*splitsIter, '`');
       InputMap.at(packet[0]) = InputMap.at(packet[1]);
       
     }
