@@ -107,7 +107,7 @@ void display(void) {
   InputMap.at("data1") += 1.0f;
   InputMap.at("data2") += 2.0f;
   InputMap.at("data3") += 5.0f;
-  InputMap.at("data4") += 0.1f;
+  InputMap.at("data4") += 0.01f;
 
 #else  // The slave automatically shuts itself off if it hasn't received
        // any packets within a few seconds (it gives itself longer if it
@@ -174,6 +174,7 @@ void sender() {
           length = 0;
       }
       length += sprintf(buf+length, "%s%c%f%c",it->first.c_str(),'`',it->second,'~');
+	printf("sending: %s\n",buf);
     }
 
   }
@@ -196,12 +197,14 @@ void receiver() {
   char buf[BUFLEN];
   vector<string> splits;
   vector<string> packet;
+  printf("in receiver");
   while (true) {
     if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
       &slen) == -1) error("ERROR recvfrom()");
     receivedPacket = true;
     framesPassed = 0;
     string itrmdt(buf);
+    printf("recieved: %s\n", buf);
     splits = split(itrmdt, '~');
     // NOTE: This simple example only sends/receives a single value (rotation),
     // but it sends rotation twice, separated by a ~ in order to demonstrate the
