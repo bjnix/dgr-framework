@@ -1,26 +1,34 @@
-template std::vector<class T> class SubjectInputList
+class InputNode
 {
-  bool isCamera;
+protected:
   std::string name;
-  std::vector<T> X_Y_Z;
-  std::vector<T> Roll_Pitch_Yaw;
+  std::vector< * InputNode> children;
+public:
+  InputNode(std::string n ): name(n) {}
+  InputNode(std::string n, std::vector<InputNode> c): name(n), children(c) {}
+  std::string getName() {return name};
+  std::vector<InputNode> getChildren() {return children};
 
-public:  
-  str::string setName(std::string n)
-  {name = n;	return name;};
-  std::string getName(std::string)
-  {return name;};
+};
 
-  std::vector<T> * setTranslation(std::vector<T>& x_y_z)
-  { X_Y_Z = x_y_z;     return X_Y_Z;};
-  std::vector<T> * setOrientationEuler(std::vector<T>& r_p_y);
-  { Roll_Pitch_Yaw = r_p_y;	return Roll_Pitch_Yaw;};
-  std::vector<T> * getTranslation()
-  {return X_Y_Z;};
-  std::vector<T> * getOrientationEuler()
-  {return Roll_Pitch_Yaw;};
-}
+class InputFloat : public InputNode
+{
+protected:
+  std::vector<float> values;
+public:
+  InputNodeFloat(std::string n, std::vector<float> v) : InputNode(n), values(v) {}
+  InputNodeFloat(std::string n, std::vector<float> v, std::vector<InputNode> c) : InputNode(n, c), values(v) {}
+  std::vector<float> getValues() {return values};
+};
 
- 
-  
-  
+class InputDouble : public InputNode
+{
+protected:
+  std::vector<double> values;
+public:
+  InputNodeFloat(std::string n, std::vector<double> v) : InputNode(n), values(v) {}
+  InputNodeFloat(std::string n, std::vector<double> v, std::vector<InputNode> c) : InputNode(n, c), values(v) {}
+  std::vector<double> getValues() {return values};
+};
+
+

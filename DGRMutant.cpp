@@ -24,6 +24,9 @@
 
 using namespace std;
 
+
+
+
 #ifdef DGR_MASTER // if MASTER:
 char *RELAY_IP = NULL;
 
@@ -50,9 +53,14 @@ double frustum_left,frustum_right,frustum_bottom,frustum_top;
 int screen_width,screen_height;
 #endif
 
+std::map<std::string,float> InputMap = {
 // parameters common to both MASTER and SLAVE
 // ADD YOUR STATE PARAMETERS THAT NEED TO BE PASSED FROM MASTER TO SLAVE HERE.
-float rotation = 0.0f;
+    {"data1",0.0f},
+    {"data2",0.0f},
+    {"data3",0.0f},
+    {"data4",0.0f}
+  };
 
 // Helper function for splitting strings along a delimiter (such as ~)
 vector<string> &split(const string &s, char delim, vector<string> &elems) {
@@ -95,7 +103,11 @@ void display(void) {
 #ifdef DGR_MASTER   // All code that updates state variables should be exclusive to the MASTER.
                     // Forbidding the SLAVES from updating state variables and only getting them
                     // from the MASTER is what guarantees that the processes all stay synchronized.
-  rotation += 1.0f;
+  InputMap.at("data1") += 1.0f;
+  InputMap.at("data2") += 2.0f;
+  InputMap.at("data3") += 5.0f;
+  InputMap.at("data4") += 0.1f;
+  InputMap.at("data4") = ((InputMap.at(data4)*10.0f) % 60.0f)/10.0f;
 
 #else  // The slave automatically shuts itself off if it hasn't received
        // any packets within a few seconds (it gives itself longer if it
@@ -132,46 +144,16 @@ void display(void) {
   gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
   glTranslatef(0,0,-30);
   glScalef (8.0, 8.0, 8.0);
-  glColor3ub(255,255,0);
-  glRotatef(rotation, 0.0f, 1.0f, 0.0f);
+  glPushMatrix();
+  glColor3ub((InputMap.at("data2") * 5) % 255,(InputMap.at("data3") *5 % 255,0);
+  glRotatef(InputMap.at("data1"), 0.0f, 1.0f, 0.0f);
   glutWireCube (1.0);
-  glutWireCube (2.5);
-  glutWireCube (3.25);
-  glutWireCube (.6);
-  glutWireCube (4.1);
-  glutWireCube (.2);
-  glColor3ub(0,255,0);
-  glRotatef(rotation, 0.0f,0.0f,1.0f);
-  glutWireCube (.5);
-  glutWireCube (4);
-  glutWireCube (.1);
-  glutWireCube(1.6);
-  glutWireCube(3.1);
-  glutWireCube(4.6);
-  glColor3ub(0,0,225);
-  glRotatef(rotation, 1.0f, 0.0f,0.0f);
-  glutWireCube(2.0);
-  glutWireCube(.25);
-  glutWireCube(.325);
-  glutWireCube (1.1);
-  glutWireCube (2.6);
-  glutWireCube (3.35);
-  glColor3ub(0,255,225);
-  glRotatef(rotation, 1.0f,0.0f,1.0f);
-  glutWireCube(1.5);
-  glutWireCube(3);
-  glutWireCube(4.5);
-  glutWireCube(2.1);
-  glutWireCube(.36);
-  glutWireCube(.425);
-  glColor3ub(210,240,50);
-  glRotatef(rotation, 1.0f,0.1f,0.0f);
-  glutWireCube(3.5);
-  glutWireCube(1.25);
-  glutWireCube(.125);
-  glutWireCube(1.6);
-  glutWireCube(3.1);
-  glutWireCube(4.6);
+  glPopMatrix();
+  glColor3ub((InputMap.at("data2") * 5) % 255,(InputMap.at("data3") *5 % 255,0);
+  glRotatef(InputMap.at("data1"), 0.0f, 1.0f, 0.0f);
+  glutWireCube (1.0);
+
+  
   glutSwapBuffers();
   glutPostRedisplay();
 }
@@ -180,8 +162,20 @@ void display(void) {
 // The MASTER sends all state data to the RELAY (which is run on the IVS head node)
 // via UDP packets in an infinite loop.
 void sender() {
+  
   while (true) {
-    sprintf(buf, "%f~%f", rotation, rotation);
+    int length = 0;
+    for(auto it = InputMap.begin();it!= InputMap.end();it++){
+      if(length >= (BUFLEN - 15))
+      {
+        if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
+      slen) == -1) error ("ERROR sendto()");
+          length = 0;
+      }
+      length += sprintf(buf+length, "%s%c%f%c",it->first,'US',it->second'GS',);}
+
+    }
+
       // NOTE: This simple example only sends/receives a single value (rotation),
       // but it sends rotation twice, separated by a ~ in order to demonstrate the
       // technique of how you can send multiple values separated by ~ and then
@@ -199,19 +193,24 @@ void sender() {
 void receiver() {
   char buf[BUFLEN];
   vector<string> splits;
+  vector<string> packet;
   while (true) {
     if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
       &slen) == -1) error("ERROR recvfrom()");
     receivedPacket = true;
     framesPassed = 0;
     string itrmdt(buf);
-    splits = split(itrmdt, '~');
+    splits = split(itrmdt, 'GS');
     // NOTE: This simple example only sends/receives a single value (rotation),
     // but it sends rotation twice, separated by a ~ in order to demonstrate the
     // technique of how you can send multiple values separated by ~ and then
     // get the values back out, as shown here.
-    rotation = (float)atof(splits[0].c_str());
-    rotation = (float)atof(splits[1].c_str());
+    for(auto splitsIter = splits.begin(); splitsIter != splits.end(); splitsIter++)
+    {
+      packet = split(*splitsIter, 'US');
+      InputMap.at(packet[0]) = InputMap.at(packet[1]);
+      
+    }
   }
 }
 #endif
