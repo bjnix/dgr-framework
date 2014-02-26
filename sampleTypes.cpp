@@ -1,115 +1,115 @@
 #include <cstdlib>
-#include <stdio.h>
-#include <string>
 #include <unistd.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <string>
 #include <vector>
+#include <map>
+#include <typeinfo>
+#include <iostream>
 #include <functional>
-/**
- * Name: serializer
- * Description: a method to serialize data or a data structure for UDP
- *              transportation
- * Arguments: data = Data structure to be serialized
- * Returns: returns string to be pushed to receiver
- */
-template<typename T> std::string serializer(T * data){};
 
-/**
- * Name: parser
- * Description: a method to parse a chunk of the incoming data stream and
- *              returns the typed data
- * Arguments: data = raw data in a string to be parsed
- * Returns: returns pointer to the parsed data
- */
+#define BUFLEN 512
 
-template<typename T>
-T * parser(std::string data){};
 
-template<> int * parser(std::string * data){};
-template<> double * parser(std::string * data){};
-template<> char * parser(std::string * data){};
-template<> bool * parser(std::string * data){};
-template<> std::vector * parser(std::string * data){};
-template<> std::string * parser(std::string * data){};
-template<> std::map * parser(std::string * data){};
 /**
  * Name: MapNode
  * Description: A template class for a map node
  */
+class MapNodePtr{
+public:
+  std::string dataType;
+  std::string name;
+};
+
 template<typename T>
-class MapNode
+class MapNode : public MapNodePtr
 {
 public:
-  MapNode(std::string n, T* d, std::function<std::string *> s, std::function<T*> p );
-  MapNode(std::string n, T* d )
+  //MapNode(std::string n, T* d );
+  MapNode(std::string n, T* d );
+  MapNode(std::string n, T d);
+  
+  typedef struct{
+    const char * name;
+    T data;
+  }packet;
 
-  static std::string name;
-  type_info dataType;
-  T * data;
-  //function pointer for serializer method
-  std::string * (* serialize)(T *);
-  //function pointer for parser method
-  T * (* parse)(std::string *);
+  packet packetData;
+  
+};
+
+template<typename T>
+MapNode<T>::MapNode(std::string n, T* d) {
+  name = n;
+  packetData.name = &n[1];
+  packetData.data = *d;
+  dataType = typeid(*d).name();
 };
 template<typename T>
-MapNode::MapNode(std::string n, T* d) {
+MapNode<T>::MapNode(std::string n, T d) {
   name = n;
-  data = d;
-  serialize = &serializer<T>;
-  parse = &parser<T>;
+  packetData.name = &n[1];
+  packetData.data = d;
+  dataType = typeid(d).name();
 };
+int serialize(std::map<std::string, MapNodePtr *> InputMap)
+{
+  char buf [BUFLEN];
+  int length = 0;
+  
+  for(auto it = InputMap.begin();it!= InputMap.end();it++)
+  {
 
-
-
-
-int main(){
-  MapNode<int> * node1 = new MapNode(string("first"),5);
-  delete node1;
+    if(length >= (BUFLEN - 15))
+    {
+      return 0;
+    }
+    if(it->second->dataType == typeid(float).name()){ 
+      MapNode<float> * cur_node = (MapNode<float> *) it->second; 
+      std::cout << cur_node->name <<" "<< cur_node->packetData.data << std::endl;
+    }
+    else if(it->second->dataType == typeid(double).name()){ 
+      MapNode<double> * cur_node = (MapNode<double> *) it->second; 
+      std::cout << cur_node->name <<" "<< cur_node->packetData.data << std::endl;
+    }
+    else if(it->second->dataType == typeid(int).name()){ 
+      MapNode<int> * cur_node = (MapNode<int> *) it->second; 
+      std::cout << cur_node->name <<" "<< cur_node->packetData.data << std::endl;
+    }
+    else if(it->second->dataType == typeid(bool).name()){ 
+      MapNode<bool> * cur_node = (MapNode<bool> *) it->second; 
+      std::cout << cur_node->name <<" "<< cur_node->packetData.data << std::endl;
+    }
+    else if(it->second->dataType == typeid(std::string).name()){ 
+      MapNode<std::string> * cur_node = (MapNode<std::string> *) it->second; 
+      std::cout << cur_node->name <<" "<< cur_node->packetData.data << std::endl;
+    }
+    else{ return 1;}
+    
+    
+  }
+  return 0;
 }
+int main(){
 
+  MapNode<int> * node1 = new MapNode<int>(std::string("first"),5);
+  MapNode<double> * node2 = new MapNode<double>("second",8.1);
+  MapNode<float> * node3 = new MapNode<float>("third",3.1);
+  MapNode<std::string> * node4 = new MapNode<std::string>("fourth","foofighters");
+  MapNode<bool> * node5 = new MapNode<bool>("fifth",true);
 
-// #include <iostream>
-// #include <cstdlib>
-// using namespace std;
+  std::map<std::string, MapNodePtr *> InputMap = {
+    {node1->name,(MapNodePtr *)node1},
+    {node2->name,(MapNodePtr *)node2},
+    {node3->name,(MapNodePtr *)node3},
+    {node4->name,(MapNodePtr *)node4},
+    {node5->name,(MapNodePtr *)node5}
+  };
 
-// template<class T> void quicksort(T a[], const int& leftarg, const int& rightarg)
-// {
-//   if (leftarg < rightarg) {
+  //std::cout << InputMap.at("first")->name <<" "<< ((MapNode<int>*) (InputMap.at("first")))->packetData.data << std::endl;
+  serialize(InputMap);
 
-//     T pivotvalue = a[leftarg];
-//     int left = leftarg - 1;
-//     int right = rightarg + 1;
-
-//   for(;;) {
-
-//     while (a[--right] > pivotvalue);
-//     while (a[++left] < pivotvalue);
-
-//     if (left >= right) break;
-
-//     T temp = a[right];
-//     a[right] = a[left];
-//     a[left] = temp;
-//   }
-
-//   int pivot = right;
-//   quicksort(a, leftarg, pivot);
-//   quicksort(a, pivot + 1, rightarg);
-//   }
-// }
-
-// int main(void) {
-//   int sortme[10];
-
-//   for (int i = 0; i < 10; i++) {
-//     sortme[i] = rand();
-//     cout << sortme[i] << " ";
-//   };
-//   cout << endl;
-
-//   quicksort<int>(sortme, 0, 10 - 1);
-
-//   for (int i = 0; i < 10; i++) cout << sortme[i] << "
-//   ";
-//   cout << endl;
-//   return 0;
-// }
+  return 0;
+}
