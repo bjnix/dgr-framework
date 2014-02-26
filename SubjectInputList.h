@@ -1,34 +1,37 @@
-class InputNode
-{
-protected:
-  std::string name;
-  std::vector< * InputNode> children;
-public:
-  InputNode(std::string n ): name(n) {}
-  InputNode(std::string n, std::vector<InputNode> c): name(n), children(c) {}
-  std::string getName() {return name};
-  std::vector<InputNode> getChildren() {return children};
+// class Type
+// {
+// public:
+//   virtual ~Type(){};
+//   virtual void * allocate()const=0;
+//   virtual void * cast(void * obj)const=0;
 
-};
+// };
 
-class InputFloat : public InputNode
+// template<typename T> 
+// class TypeImpl : public Type
+// {
+// public:
+//   virtual void * allocate()const{ return new T; }
+//   virtual void * cast(void * obj)const{ return static_cast<T*>(obj); }
+// };
+// /**
+//  * Type * type = new TypeImpl<int>;
+//  * void * myint = type->allocate();
+//  * int i = type->cast(myint); 
+//  */
+template<typename T>
+class MapNode
 {
-protected:
-  std::vector<float> values;
-public:
-  InputNodeFloat(std::string n, std::vector<float> v) : InputNode(n), values(v) {}
-  InputNodeFloat(std::string n, std::vector<float> v, std::vector<InputNode> c) : InputNode(n, c), values(v) {}
-  std::vector<float> getValues() {return values};
+  static std::string name;
+  type_info dataType;
+  T * Data;
+  //function pointer for serializer method
+  std::str (* serialize)(T *);
+  //function pointer for parser method
+  void (* parse)(std::string *);
 };
-
-class InputDouble : public InputNode
-{
-protected:
-  std::vector<double> values;
-public:
-  InputNodeFloat(std::string n, std::vector<double> v) : InputNode(n), values(v) {}
-  InputNodeFloat(std::string n, std::vector<double> v, std::vector<InputNode> c) : InputNode(n, c), values(v) {}
-  std::vector<double> getValues() {return values};
-};
+template<typename T>
+T parse(std::string str){};
+template<> int parse<int>()
 
 
