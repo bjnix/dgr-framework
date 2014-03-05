@@ -25,6 +25,101 @@
 
 using namespace std;
 
+/**
+ * Name: MapNode
+ * Description: A template class for a map node
+ */
+class MapNodePtr{
+public:
+  std::string dataType;
+  std::string name;
+};
+
+template<typename T>
+class MapNode : public MapNodePtr
+{
+public:
+  //MapNode(std::string n, T* d );
+  MapNode(std::string n, T* d );
+  MapNode(std::string n, T d);
+  
+  typedef struct{
+    const char * name;
+    T data;
+  }packet;
+
+  packet packetData;
+  int packetLength;
+};
+
+template<typename T>
+MapNode<T>::MapNode(std::string n, T* d) {
+  name = n;
+  packetData.name = &n[1];
+  packetData.data = *d;
+  dataType = typeid(*d).name();
+  packetLength = sizeof(packetData.name) + sizeof(packetData.data);
+};
+template<typename T>
+MapNode<T>::MapNode(std::string n, T d) {
+  name = n;
+  packetData.name = &n[1];
+  packetData.data = d;
+  dataType = typeid(d).name();
+  packetLength = sizeof(packetData.name) + sizeof(packetData.data);
+};
+int serialize(std::map<std::string, MapNodePtr *> InputMap)
+{
+  char buf [BUFLEN];
+  int length = 0;
+  void * sendStruct;
+
+  for(auto it = InputMap.begin();it!= InputMap.end();it++)
+  {
+
+    if(length >= (BUFLEN - 15))
+    {
+      return 0;
+    }
+    if(it->second->dataType == typeid(float).name()){ 
+      MapNode<float> * cur_node = (MapNode<float> *) it->second; 
+      sendStruct = &(cur_node->packetData);
+      length = cur_node->packetLength;
+      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+    }
+    else if(it->second->dataType == typeid(double).name()){ 
+      MapNode<double> * cur_node = (MapNode<double> *) it->second; 
+      sendStruct = &(cur_node->packetData);
+      length = cur_node->packetLength;
+      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+    }
+    else if(it->second->dataType == typeid(int).name()){ 
+      MapNode<int> * cur_node = (MapNode<int> *) it->second; 
+      sendStruct = &(cur_node->packetData);
+      length = cur_node->packetLength;length = cur_node->packetLength;
+      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+    }
+    else if(it->second->dataType == typeid(bool).name()){ 
+      MapNode<bool> * cur_node = (MapNode<bool> *) it->second; 
+      sendStruct = &(cur_node->packetData);
+      length = cur_node->packetLength;
+      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+    }
+    else if(it->second->dataType == typeid(std::string).name()){ 
+      MapNode<std::string> * cur_node = (MapNode<std::string> *) it->second; 
+      sendStruct = &(cur_node->packetData);
+      length = cur_node->packetLength;
+      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+    }
+    else{ return 1;}
+
+    if (sendto(s, sendStruct, length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+
+    
+  }
+  return 0;
+}
+
 
 
 
@@ -165,28 +260,62 @@ void sender() {
   
   while (true) 
   {
+    
+    char buf [BUFLEN];
     int length = 0;
+    void * sendStruct;
+
     for(auto it = InputMap.begin();it!= InputMap.end();it++)
     {
+
       if(length >= (BUFLEN - 15))
       {
-        if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
-          length = 0;
+        return 0;
       }
-      length += sprintf(buf+length, "%s%c%f%c",it->first.c_str(),'`',it->second,'~');
-	//printf("sending: %s\n",buf);
+      if(it->second->dataType == typeid(float).name())
+      { 
+        MapNode<float> * cur_node = (MapNode<float> *) it->second; 
+        sendStruct = &(cur_node->packetData);
+        length = cur_node->packetLength;
+        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+      }
+      else if(it->second->dataType == typeid(double).name())
+      { 
+        MapNode<double> * cur_node = (MapNode<double> *) it->second; 
+        sendStruct = &(cur_node->packetData);
+        length = cur_node->packetLength;
+        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+      }
+      else if(it->second->dataType == typeid(int).name())
+      { 
+        MapNode<int> * cur_node = (MapNode<int> *) it->second; 
+        sendStruct = &(cur_node->packetData);
+        length = cur_node->packetLength;length = cur_node->packetLength;
+        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+      }
+      else if(it->second->dataType == typeid(bool).name())
+      { 
+        MapNode<bool> * cur_node = (MapNode<bool> *) it->second; 
+        sendStruct = &(cur_node->packetData);
+        length = cur_node->packetLength;
+        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+      }
+      else if(it->second->dataType == typeid(std::string).name())
+      { 
+        MapNode<std::string> * cur_node = (MapNode<std::string> *) it->second; 
+        sendStruct = &(cur_node->packetData);
+        length = cur_node->packetLength;
+        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+      }
+      else
+      { return 1;}
+
+      if (sendto(s, sendStruct, length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+
+      
     }
-
-  
-
-      // NOTE: This simple example only sends/receives a single value (rotation),
-      // but it sends rotation twice, separated by a ~ in order to demonstrate the
-      // technique of how you can send multiple values separated by ~ and then
-      // get the values back out on the receiver end by splitting along '~'.
-    if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
-      slen) == -1) error ("ERROR sendto()");
     usleep(32000);
-    }
+  }
 }
 
 
