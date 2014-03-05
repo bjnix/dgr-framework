@@ -65,9 +65,11 @@ std::vector<std::string> * serialize(std::map<std::string, MapNodePtr *> InputMa
   int length = 0;
   packetPtr * sendStruct;
   std::vector<std::string> * packets = new std::vector<std::string>;
+  std::string message_buf;
+
   for(auto it = InputMap.begin();it!= InputMap.end();it++)
   {
-    std::string message_buf;
+    
 
     if(length >= (BUFLEN - 15))
     {
@@ -81,7 +83,7 @@ std::vector<std::string> * serialize(std::map<std::string, MapNodePtr *> InputMa
       message_buf.reserve( sizeof(cur_node->packetData) );
       message_buf.append( (const char*) &(cur_node->packetData.name), sizeof(cur_node->packetData.name));
       message_buf.append( (const char*) &(cur_node->packetData.data) , sizeof(cur_node->packetData.data));
-      std::cout << sendStruct->name <<" "<< cur_node->packetData.data << " " << message_buf << " " << message_buf.size() << " " << length << std::endl;
+      std::cout << message_buf;
     }
     else if(it->second->dataType == typeid(double).name()){ 
       MapNode<double> * cur_node = (MapNode<double> *) it->second; 
@@ -92,7 +94,7 @@ std::vector<std::string> * serialize(std::map<std::string, MapNodePtr *> InputMa
       message_buf.append( (const char*) &(cur_node->packetData.name), sizeof(cur_node->packetData.name));
       message_buf.append( (const char*) &(cur_node->packetData.data) , sizeof(cur_node->packetData.data));
 
-      std::cout << sendStruct->name <<" "<< cur_node->packetData.data << " " << message_buf << " " << message_buf.size() << " " << length << std::endl;
+      std::cout << message_buf;
     }
     else if(it->second->dataType == typeid(int).name()){ 
       MapNode<int> * cur_node = (MapNode<int> *) it->second; 
@@ -103,7 +105,7 @@ std::vector<std::string> * serialize(std::map<std::string, MapNodePtr *> InputMa
       message_buf.append( (const char*) &(cur_node->packetData.name), sizeof(cur_node->packetData.name));
       message_buf.append( (const char*) &(cur_node->packetData.data) , sizeof(cur_node->packetData.data));
 
-      std::cout << sendStruct->name <<" "<< cur_node->packetData.data << " " << message_buf << " " << message_buf.size() << " " << length << std::endl;
+      std::cout << message_buf;    
     }
     else if(it->second->dataType == typeid(bool).name()){ 
       MapNode<bool> * cur_node = (MapNode<bool> *) it->second; 
@@ -114,7 +116,7 @@ std::vector<std::string> * serialize(std::map<std::string, MapNodePtr *> InputMa
       message_buf.append( (const char*) &(cur_node->packetData.name), sizeof(cur_node->packetData.name));
       message_buf.append( (const char*) &(cur_node->packetData.data) , sizeof(cur_node->packetData.data));
 
-      std::cout << sendStruct->name <<" "<< cur_node->packetData.data << " " << message_buf << " " << message_buf.size() << " " << length << std::endl;
+      std::cout << message_buf;    
     }
     else if(it->second->dataType == typeid(std::string).name()){ 
       MapNode<std::string> * cur_node = (MapNode<std::string> *) it->second; 
@@ -125,22 +127,24 @@ std::vector<std::string> * serialize(std::map<std::string, MapNodePtr *> InputMa
       message_buf.append( (const char*) &(cur_node->packetData.name), sizeof(cur_node->packetData.name));
       message_buf.append( (const char*) &(cur_node->packetData.data) , sizeof(cur_node->packetData.data));
 
-      std::cout << sendStruct->name <<" "<< cur_node->packetData.data << " " << message_buf << " " << message_buf.size() << " " << length << std::endl;
+      std::cout << message_buf;
     }
     else{ std::cout<<"error"<<std::endl; return packets;}
     
-    packets->push_back(message_buf);
+    
     
   }
+  std::cout<<std::endl;
+  packets->push_back(message_buf);
   return packets;
 }
 std::vector<std::string> * parser(std::vector<std::string> * packets){
   std::string * pack;
   for(int i = 0; i < packets->size(); i++)
   {
-    pack = &packets[i];
-    pack->replace(sizeof(char),pack->find('\0'),'#');
-    std::cout<<packets[i]<<std::endl;
+    // pack = &packets[i];
+    // pack->replace(sizeof(char),pack->find('\0'),'#');
+    // std::cout<<packets[i]<<std::endl;
   }
 }
 // void receiver() {
@@ -190,7 +194,7 @@ int main(){
   };
 
   //std::cout << InputMap.at("first")->name <<" "<< ((MapNode<int>*) (InputMap.at("first")))->packetData.data << std::endl;
-parse(serialize(InputMap));
+parser(serialize(InputMap));
 
   return 0;
 }
