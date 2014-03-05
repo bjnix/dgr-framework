@@ -134,10 +134,13 @@ std::vector<std::string> * serialize(std::map<std::string, MapNodePtr *> InputMa
   }
   return packets;
 }
-void parser(std::vector<std::string>> * packets){
-  for(auto it = packets->front(); it != packets->back();it++)
+std::vector<std::string> * parser(std::vector<std::string> * packets){
+  std::string * pack;
+  for(int i = 0; i < packets->size(); i++)
   {
-    it.find()
+    pack = &packets[i];
+    pack->replace(sizeof(char),pack->find('\0'),'#');
+    std::cout<<packets[i]<<std::endl;
   }
 }
 // void receiver() {
@@ -187,7 +190,7 @@ int main(){
   };
 
   //std::cout << InputMap.at("first")->name <<" "<< ((MapNode<int>*) (InputMap.at("first")))->packetData.data << std::endl;
-  parse(serialize(InputMap));
+parse(serialize(InputMap));
 
   return 0;
 }
