@@ -194,7 +194,7 @@ std::string * serialize(std::map<std::string, MapNodePtr *> InputMap)
     int packet_length = 0;
     bool first = true;
     bool last = false;
-
+    message_buf << std::flush;
 
     for(auto it = InputMap.begin();it!= InputMap.end();it++)
     {
@@ -227,9 +227,7 @@ std::string * serialize(std::map<std::string, MapNodePtr *> InputMap)
         if(first || last) { message_buf << cur_packet_num; node_length -= sizeof(cur_packet_num); }
 
         std::cout << cur_node->name << " " << cur_node->dataType << " " << cur_node->getData() <<std::endl;
-        message_buf << cur_node->name; 
-        message_buf << cur_node->dataType;
-        message_buf << cur_node->getData();
+        message_buf << cur_node->name << " " << cur_node->dataType << " " << cur_node->getData();
 
         packet_length += node_length;
 
