@@ -11,6 +11,7 @@
 #include <sstream>
 #include <functional>
 
+//512 bytes for buffer length?
 #define BUFLEN 512
 
 enum type_enum      //enumeration of data 
@@ -97,20 +98,20 @@ template<typename T>
 type_enum typeid_int(T data)
 {
     if(typeid(void)     == typeid(data)) return DGR_VOID;
-    if(typeid(int)      == typeid(data)) return DGR_INT;
-    if(typeid(bool)     == typeid(data)) return DGR_DOUBLE;
-    if(typeid(float)    == typeid(data)) return DGR_FLOAT;
-    if(typeid(char)     == typeid(data)) return DGR_CHAR;
-    if(typeid(bool)     == typeid(data)) return DGR_BOOL;
+    else if(typeid(int)      == typeid(data)) return DGR_INT;
+    else if(typeid(bool)     == typeid(data)) return DGR_DOUBLE;
+    else if(typeid(float)    == typeid(data)) return DGR_FLOAT;
+    else if(typeid(char)     == typeid(data)) return DGR_CHAR;
+    else if(typeid(bool)     == typeid(data)) return DGR_BOOL;
 
-    if(typeid(void *)   == typeid(data)) return DGR_PTR_VOID;
-    if(typeid(int *)    == typeid(data)) return DGR_PTR_INT;
-    if(typeid(bool *)   == typeid(data)) return DGR_PTR_DOUBLE;
-    if(typeid(float *)  == typeid(data)) return DGR_PTR_FLOAT;
-    if(typeid(char *)   == typeid(data)) return DGR_PTR_CHAR;
-    if(typeid(bool *)   == typeid(data)) return DGR_PTR_BOOL;
+    else if(typeid(void *)   == typeid(data)) return DGR_PTR_VOID;
+    else if(typeid(int *)    == typeid(data)) return DGR_PTR_INT;
+    else if(typeid(bool *)   == typeid(data)) return DGR_PTR_DOUBLE;
+    else if(typeid(float *)  == typeid(data)) return DGR_PTR_FLOAT;
+    else if(typeid(char *)   == typeid(data)) return DGR_PTR_CHAR;
+    else if(typeid(bool *)   == typeid(data)) return DGR_PTR_BOOL;
 
-     if(typeid(std::string)              == typeid(data)) return DGR_STD_STRING;
+    else if(typeid(std::string)             == typeid(data)) return DGR_STD_STRING;
     // if(typeid(std::array<U>)               == typeid(data)) return DGR_STD_ARRAY;
     // if(typeid(std::vector)              == typeid(data)) return DGR_STD_VECTOR;
     // if(typeid(std::deque))              == typeid(data)) return DGR_STD_DEQUE;
@@ -145,6 +146,9 @@ type_enum typeid_int(T data)
     // if(typeid(set::unordered_multiset *)== typeid(data)) return DGR_PTR_STD_UNORDERED_MULTISET;
     // if(typeid(set::unordered_map *)     == typeid(data)) return DGR_PTR_STD_UNORDERED_MAP;
     // if(typeid(set::unordered_multimap *)== typeid(data)) return DGR_PTR_STD_UNORDERED_MULTIMAP;
+     else{
+        return DGR_VOID;
+     }
 
 }
 
@@ -158,10 +162,13 @@ public:
     type_enum dataType;
     size_t dataLength;
     virtual std::string getData(void) =0;
+    //void * setData =0;
     //setData callback function?
-    MapNodePtr(std::string n) : name(n.c_str()){}
-    MapNodePtr(std::string n, type_enum dT, size_t dL) : name(n.c_str()), dataType(dT), dataLength(dL){}
+    MapNodePtr(std::string n) : name(n){}
+    MapNodePtr(std::string n, type_enum dT, size_t dL) : name(n), dataType(dT), dataLength(dL){}
 };
+
+template<typename T>
 
 //only works with types that work with stringstream (native types)
 template<typename T>
@@ -176,10 +183,12 @@ public:
         ss << MapNode<T>::data; 
         return ss.str();
     }
-    //int setData(T d){ MapNode<T>::data = d; }
+    void (setData)(T);
+
     MapNode(std::string n, T d) : MapNodePtr(n), data(d){
         dataType = typeid_int<T>(d);
-        dataLength = sizeof(d);
+        dataLength = getData().length();
+        setData = get_SetDataFuncton(); //TODO: make get_SetDataFunction
     }
     MapNode(std::string n, type_enum dT, size_t dL, T d) : MapNodePtr(n, dT, dL), data(d){}
       
@@ -189,69 +198,96 @@ public:
 std::string * serialize(std::map<std::string, MapNodePtr *> InputMap)
 {
     std::stringstream message_buf;
-    int packet_counter = 0;
+    unsigned char packet_counter = 0;
     int node_length = 0;
     int packet_length = 0;
-    bool first = true;
-    bool last = false;
+    bool first_node = true;
+    bool last_node = false;
     message_buf << std::flush;
 
     for(auto it = InputMap.begin();it!= InputMap.end();it++)
     {
        
-        if(std::next(it) == InputMap.end()) last = true;
+        node_length = 0;
+        if(std::next(it) == InputMap.end()){ last_node = true;
+        std::cout << "last node!" << std::endl;}
+        if(first_node) std::cout<< "first node!" << std::endl;
         
-
-        
-
         MapNodePtr * cur_node = it->second;
         std::string cur_name = cur_node->name;
-        char cur_packet_num; 
-        char cur_type = cur_node->dataType;
         std::string cur_data = cur_node->getData();
+
+        //unsigned char cur_data_length = cur_node->dataLength; 
+        unsigned char cur_type = cur_node->dataType;
         
-        if(first || last) cur_packet_num = (char)packet_counter;
 
         node_length = cur_name.length() + sizeof(cur_type) + cur_data.length();
 
-        if(first || last) node_length += sizeof(cur_packet_num);
+        if(first_node || last_node) node_length += sizeof(packet_counter);
 
-        if(packet_length + node_length > BUFLEN)
+        if( (packet_length + node_length) > BUFLEN)
         {
-          std::cout << message_buf.str() << std::endl;
+          std::cout << message_buf.str() << std::endl << "split!" << std::endl;
+          message_buf.str(std::string());
+          packet_counter ++;
           packet_length = 0;
-          first = false;
+          first_node = true;
+          it--;
 
         }else{
         
-        if(first || last) { message_buf << cur_packet_num; node_length -= sizeof(cur_packet_num); }
+            if(first_node) { message_buf << packet_counter; }
+            message_buf << cur_node->name << cur_node->dataType << cur_node->getData();
+            packet_length += node_length;
+            std::cout << cur_node->name  << cur_type << cur_node->getData() << " packet_length: " << packet_length << std::endl;
 
-        std::cout << cur_node->name << " " << cur_node->dataType << " " << cur_node->getData() <<std::endl;
-        message_buf << cur_node->name << " " << cur_node->dataType << " " << cur_node->getData();
 
-        packet_length += node_length;
-
-        
-        first = false;
-        node_length = 0;
+            
+            first_node = false;
         }
 
     }
     
     std::string * packet = new std::string(message_buf.str());
     
-    std::cout<< packet << std::endl;
+    std::cout<< *packet << " packet_length: " << packet_length << std::endl;
 
     return packet;
+}
+
+void parser(std::string * packets, std::map<std::string, MapNodePtr *> InputMap)
+{
+    std::stringstream packet_sstream;
+    packet_sstream.str(*packets);
+
+    char packet_number, node_data_type;
+    bool packet_split = false;
+
+    MapNodePtr * cur_node;
+    std::string node_name;
+    int node_data_length;
+
+    //while(!packet_sstream.good()){}
+    packet_sstream.get(packet_number);
+
+    if(static_cast<int>(packet_number) != 0) { packet_split = true; }
+
+    while(packet_sstream.good())
+    {
+
+
+        std::getline(packet_sstream, node_name, '\0'); 
+        cur_node = InputMap.at(node_name);
+
+        //packet_sstream.get(node_data_type);
+        node_data_length = cur_node->dataLength;
+        char * node_data = new char[node_data_length];
+        packet_sstream.get(node_data, node_data_length + 1);
+
+
+        std::cout << static_cast<int>(packet_number) << " : " << node_name << " : " << node_data_type << " : " << node_data << " : " << std::endl;
+
     }
-std::vector<std::string> * parser(std::string * packets){
-  std::string * pack;
-  for(int i = 0; i < packets->size(); i++)
-  {
-    // pack = &packets[i];
-    // pack->replace(sizeof(char),pack->find('\0'),'#');
-    // std::cout<<packets[i]<<std::endl;
-  }
 }
 // void receiver() {
 //   char buf[BUFLEN];
@@ -280,22 +316,95 @@ std::vector<std::string> * parser(std::string * packets){
 // }
 int main(){
 
-  MapNode<int> * node1 = new MapNode<int>(std::string("first"),5);
-  MapNode<double> * node2 = new MapNode<double>(std::string("second"),8.1);
-  MapNode<float> * node3 = new MapNode<float>(std::string("third"),3.1);
-  MapNode<std::string> * node4 = new MapNode<std::string>(std::string("fourth"),"foofighters");
-  MapNode<bool> * node5 = new MapNode<bool>(std::string("fifth"),true);
+    MapNode<int> * node1 = new MapNode<int>(std::string("first"),5);
+    MapNode<double> * node2 = new MapNode<double>(std::string("second"),8.1);
+    MapNode<float> * node3 = new MapNode<float>(std::string("third"),3.1);
+    MapNode<std::string> * node4 = new MapNode<std::string>(std::string("fourth"),"foofighters 1");
+    MapNode<bool> * node5 = new MapNode<bool>(std::string("fifth"),true);
+    MapNode<int> * node11 = new MapNode<int>(std::string("first_0"),5);
+    MapNode<double> * node12 = new MapNode<double>(std::string("second_0"),8.1);
+    MapNode<float> * node13 = new MapNode<float>(std::string("third_0"),3.1);
+    MapNode<std::string> * node14 = new MapNode<std::string>(std::string("fourth_0"),"foofighters 2");
+    MapNode<bool> * node15 = new MapNode<bool>(std::string("fifth_0"),true);
+    MapNode<int> * node21 = new MapNode<int>(std::string("first_1"),5);
+    MapNode<double> * node22 = new MapNode<double>(std::string("second_1"),8.1);
+    MapNode<float> * node23 = new MapNode<float>(std::string("third_1"),3.1);
+    MapNode<std::string> * node24 = new MapNode<std::string>(std::string("fourth_1"),"foofighters 3");
+    MapNode<bool> * node25 = new MapNode<bool>(std::string("fifth_1"),true);
+    MapNode<int> * node31 = new MapNode<int>(std::string("first_2"),5);
+    MapNode<double> * node32 = new MapNode<double>(std::string("second_2"),8.1);
+    MapNode<float> * node33 = new MapNode<float>(std::string("third_2"),3.1);
+    MapNode<std::string> * node34 = new MapNode<std::string>(std::string("fourth_2"),"foofighters 4");
+    MapNode<bool> * node35 = new MapNode<bool>(std::string("fifth_2"),true);
+    MapNode<int> * node41 = new MapNode<int>(std::string("first_3"),5);
+    MapNode<double> * node42 = new MapNode<double>(std::string("second_3"),8.1);
+    MapNode<float> * node43 = new MapNode<float>(std::string("third_3"),3.1);
+    MapNode<std::string> * node44 = new MapNode<std::string>(std::string("fourth_3"),"foofighters 5");
+    MapNode<bool> * node45 = new MapNode<bool>(std::string("fifth_3"),true);
+    std::map<std::string, MapNodePtr *> InputMap = 
+    {
+        {node1->name,(MapNodePtr *)node1},
+        {node2->name,(MapNodePtr *)node2},
+        {node3->name,(MapNodePtr *)node3},
+        {node4->name,(MapNodePtr *)node4},
+        {node5->name,(MapNodePtr *)node5},
+        {node11->name,(MapNodePtr *)node11},
+        {node12->name,(MapNodePtr *)node12},
+        {node13->name,(MapNodePtr *)node13},
+        {node14->name,(MapNodePtr *)node14},
+        {node15->name,(MapNodePtr *)node15},
+        {node21->name,(MapNodePtr *)node21},
+        {node22->name,(MapNodePtr *)node22},
+        {node23->name,(MapNodePtr *)node23},
+        {node24->name,(MapNodePtr *)node24},
+        {node25->name,(MapNodePtr *)node25},
+        {node31->name,(MapNodePtr *)node31},
+        {node32->name,(MapNodePtr *)node32},
+        {node33->name,(MapNodePtr *)node33},
+        {node34->name,(MapNodePtr *)node34},
+        {node35->name,(MapNodePtr *)node35},
+        {node41->name,(MapNodePtr *)node41},
+        {node42->name,(MapNodePtr *)node42},
+        {node43->name,(MapNodePtr *)node43},
+        {node44->name,(MapNodePtr *)node44},
+        {node45->name,(MapNodePtr *)node45},
 
-  std::map<std::string, MapNodePtr *> InputMap = {
-    {node1->name,(MapNodePtr *)node1},
-    {node2->name,(MapNodePtr *)node2},
-    {node3->name,(MapNodePtr *)node3},
-    {node4->name,(MapNodePtr *)node4},
-    {node5->name,(MapNodePtr *)node5}
-};
+    };
 
-  //std::cout << InputMap.at("first")->name <<" "<< ((MapNode<int>*) (InputMap.at("first")))->packetData.data << std::endl;
-parser(serialize(InputMap));
+    std::stringstream foo;
+    std::string food1, food2, food3, food4, food5, food6, food7;
+    char fine1,fine2;
+    char fine3[18];
+    char fine4[12];
+    // food4 = std::string("home");
+    // food5 = std::string("goon!");    
+    // food6 = std::string("qwert asdf");
+    // foo << 'f' << 'n' << food4 << '\0' << food5 << '\0' << food6 ;
+    // foo.get( fine1 );
+    // foo.get( fine2 );
+
+    // std::getline(foo , food1, '\0');
+    // std::getline(foo , food2, '\0');
+    // foo.get(fine3, food6.length() + 1);
+    // std::cout << fine1 << " : " << fine2 << " : " << food1 << " : " << food2 << " : " << fine3 << std::endl;
+    foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" ;
+    food7 = foo.str();
+    std::cout << ":" << foo.str() << ":" << std::endl;
+
+    foo.str("");
+
+    std::cout << ":" << foo.str() << ":" << std::endl;
+    foo.str(food7);
+    // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" << std::endl;
+    foo.get(fine1);
+    std::getline(foo, food1, '\0'); 
+    foo.get(fine2);
+    foo.get(fine4, sizeof(fine4)+1);
+
+
+    std::cout << fine1 << " : " << food1 << " : " << fine2 << " : " << fine4 << " : " << std::endl;
+
+    serialize(InputMap);
 
 return 0;
 }
