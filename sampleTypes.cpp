@@ -162,13 +162,11 @@ public:
     type_enum dataType;
     size_t dataLength;
     virtual std::string getData(void) =0;
-    //void * setData =0;
+    virtual void setData(char **) =0;
     //setData callback function?
     MapNodePtr(std::string n) : name(n){}
     MapNodePtr(std::string n, type_enum dT, size_t dL) : name(n), dataType(dT), dataLength(dL){}
 };
-
-template<typename T>
 
 //only works with types that work with stringstream (native types)
 template<typename T>
@@ -183,12 +181,15 @@ public:
         ss << MapNode<T>::data; 
         return ss.str();
     }
-    void (setData)(T);
+    void setData(char ** data_array){
+
+        memcpy(&data, *data_array, dataLength);
+    }
 
     MapNode(std::string n, T d) : MapNodePtr(n), data(d){
         dataType = typeid_int<T>(d);
         dataLength = getData().length();
-        setData = get_SetDataFuncton(); //TODO: make get_SetDataFunction
+        
     }
     MapNode(std::string n, type_enum dT, size_t dL, T d) : MapNodePtr(n, dT, dL), data(d){}
       
@@ -269,7 +270,7 @@ void parser(std::string * packets, std::map<std::string, MapNodePtr *> InputMap)
 
     //while(!packet_sstream.good()){}
     packet_sstream.get(packet_number);
-
+    std::cout << "parsing..." << std::endl << static_cast<int>(packet_number) << " : ";
     if(static_cast<int>(packet_number) != 0) { packet_split = true; }
 
     while(packet_sstream.good())
@@ -282,10 +283,11 @@ void parser(std::string * packets, std::map<std::string, MapNodePtr *> InputMap)
         //packet_sstream.get(node_data_type);
         node_data_length = cur_node->dataLength;
         char * node_data = new char[node_data_length];
+
         packet_sstream.get(node_data, node_data_length + 1);
+        cur_node->setData(&node_data);
 
-
-        std::cout << static_cast<int>(packet_number) << " : " << node_name << " : " << node_data_type << " : " << node_data << " : " << std::endl;
+        std::cout << node_name << " : " << node_data_type << " : " << cur_node->getData() << " : " << std::endl;
 
     }
 }
@@ -371,40 +373,40 @@ int main(){
 
     };
 
-    std::stringstream foo;
-    std::string food1, food2, food3, food4, food5, food6, food7;
-    char fine1,fine2;
-    char fine3[18];
-    char fine4[12];
-    // food4 = std::string("home");
-    // food5 = std::string("goon!");    
-    // food6 = std::string("qwert asdf");
-    // foo << 'f' << 'n' << food4 << '\0' << food5 << '\0' << food6 ;
-    // foo.get( fine1 );
-    // foo.get( fine2 );
+    // std::stringstream foo;
+    // std::string food1, food2, food3, food4, food5, food6, food7;
+    // char fine1,fine2;
+    // char fine3[18];
+    // char fine4[12];
+    // // food4 = std::string("home");
+    // // food5 = std::string("goon!");    
+    // // food6 = std::string("qwert asdf");
+    // // foo << 'f' << 'n' << food4 << '\0' << food5 << '\0' << food6 ;
+    // // foo.get( fine1 );
+    // // foo.get( fine2 );
 
-    // std::getline(foo , food1, '\0');
-    // std::getline(foo , food2, '\0');
-    // foo.get(fine3, food6.length() + 1);
-    // std::cout << fine1 << " : " << fine2 << " : " << food1 << " : " << food2 << " : " << fine3 << std::endl;
-    foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" ;
-    food7 = foo.str();
-    std::cout << ":" << foo.str() << ":" << std::endl;
+    // // std::getline(foo , food1, '\0');
+    // // std::getline(foo , food2, '\0');
+    // // foo.get(fine3, food6.length() + 1);
+    // // std::cout << fine1 << " : " << fine2 << " : " << food1 << " : " << food2 << " : " << fine3 << std::endl;
+    // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" ;
+    // food7 = foo.str();
+    // std::cout << ":" << foo.str() << ":" << std::endl;
 
-    foo.str("");
+    // foo.str("");
 
-    std::cout << ":" << foo.str() << ":" << std::endl;
-    foo.str(food7);
-    // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" << std::endl;
-    foo.get(fine1);
-    std::getline(foo, food1, '\0'); 
-    foo.get(fine2);
-    foo.get(fine4, sizeof(fine4)+1);
+    // std::cout << ":" << foo.str() << ":" << std::endl;
+    // foo.str(food7);
+    // // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" << std::endl;
+    // foo.get(fine1);
+    // std::getline(foo, food1, '\0'); 
+    // foo.get(fine2);
+    // foo.get(fine4, sizeof(fine4)+1);
 
 
-    std::cout << fine1 << " : " << food1 << " : " << fine2 << " : " << fine4 << " : " << std::endl;
+    // std::cout << fine1 << " : " << food1 << " : " << fine2 << " : " << fine4 << " : " << std::endl;
 
-    serialize(InputMap);
+    parser(serialize(InputMap),InputMap);
 
 return 0;
 }
