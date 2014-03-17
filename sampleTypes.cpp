@@ -161,14 +161,14 @@ public:
     std::string name;
     type_enum dataType;
     size_t dataLength;
-    virtual char * getData(void) =0;
+    virtual char * getDataString(void) =0;
     virtual void setData(char *) =0;
     //setData callback function?
     MapNodePtr(std::string n) : name(n){}
     MapNodePtr(std::string n, type_enum dT, size_t dL) : name(n), dataType(dT), dataLength(dL){}
 };
 
-//only works with types that work with stringstream (native types)
+//only works with POD types
 template<typename T>
 class MapNode : public MapNodePtr
 {
@@ -176,7 +176,8 @@ protected:
     T data;
 
 public:
-    char * getData(void){
+    T * getData(){ return &data;}
+    char * getDataString(void){
         
         char * data_array = new char[dataLength];
         memcpy(data_array, &data, dataLength);
@@ -193,27 +194,26 @@ public:
     }
 
     MapNode(std::string n, T d) : MapNodePtr(n), data(d){
-        std::cout<< data << ": "<< std::endl;
         dataType = typeid_int<T>(d);
         dataLength = sizeof(T);
-        //setData(getData());
-        std::cout << name << " : " << data << " : " << getData() << " : " <<  typeid(T).name() << " : " << dataLength << std::endl;
-        
     }
+
     MapNode(std::string n, type_enum dT, size_t dL, T d) : MapNodePtr(n, dT, dL), data(d){}
       
 };
 
 
-std::string * serialize(std::map<std::string, MapNodePtr *> InputMap)
+int serialize(std::map<std::string, MapNodePtr *> InputMap, char * message_buf)
 {
-    std::stringstream message_buf;
+    // char * message_buf = new char[BUFLEN];
+    char * node_buf;
     unsigned char packet_counter = 0;
+    int node_counter = 0;
     int node_length = 0;
     int packet_length = 0;
     bool first_node = true;
     bool last_node = false;
-    message_buf << std::flush;
+
 
     for(auto it = InputMap.begin();it!= InputMap.end();it++)
     {
@@ -225,7 +225,7 @@ std::string * serialize(std::map<std::string, MapNodePtr *> InputMap)
         
         MapNodePtr * cur_node = it->second;
         std::string cur_name = cur_node->name;
-        char* cur_data = cur_node->getData();
+        char* cur_data = cur_node->getDataString();
         int cur_data_length = cur_node->dataLength;
 
         unsigned char cur_type = cur_node->dataType;
@@ -234,12 +234,18 @@ std::string * serialize(std::map<std::string, MapNodePtr *> InputMap)
         //node_length = cur_name.length() + sizeof(char) + sizeof(cur_type) + cur_data_length;
         node_length = cur_name.length() + sizeof(char) + cur_data_length;
 
-        if(first_node || last_node) node_length += sizeof(packet_counter);
-
+        // if(first_node || last_node) node_length += sizeof(packet_counter);
+        node_buf = new char[node_length];
+        
+        //prepare node buffer
+        memcpy(node_buf, cur_name.c_str(), cur_name.length());
+        node_buf[cur_name.length()] = '\0';
+        memcpy(node_buf + cur_name.length() + 1, cur_data, cur_data_length);
+        //message buffer full. send and start a new one.
         if( (packet_length + node_length) > BUFLEN)
         {
-          std::cout << message_buf.str() << std::endl << "split!" << std::endl;
-          message_buf.str(std::string());
+          for(int i = 0; i < packet_length; i++ ){ std::cout << message_buf[i]; message_buf[i] = '\0';}
+          std::cout << std::endl << "split! " << packet_counter << std::endl;
           packet_counter ++;
           packet_length = 0;
           first_node = true;
@@ -247,75 +253,102 @@ std::string * serialize(std::map<std::string, MapNodePtr *> InputMap)
 
         }else{
         
-            if(first_node) { message_buf << packet_counter; }
+            // if(first_node) { message_buf << packet_counter; }
             //switch comment to include type character 
-            //message_buf << cur_node->name << '\0' << cur_type << cur_node->getData();
-            message_buf << cur_node->name << '\0' << cur_data;
+            //message_buf << cur_node->name << '\0' << cur_type << cur_node->getDataString();
+            
 
+            memcpy(message_buf + packet_length, node_buf, node_length);
+            std::cout << "buffer: "<< std::endl;
+            for(int i = 0; i < BUFLEN; i++){
+                if(message_buf[i] != '\0'){
+                    if(message_buf[i] > 31) printf("%c",message_buf[i]); 
+                    else printf(":%i",message_buf[i]);
+                }
+                else printf("| ");
+            }
+            std::cout << "::" << std::endl;   
             packet_length += node_length;
-            std::cout << cur_node->name << " : " <<  cur_data << " : " << cur_data_length << std::endl;
 
 
             
             first_node = false;
+            node_counter ++;
         }
 
     }
-    
-    std::string * packet = new std::string(message_buf.str());
-    
-    //std::cout<< *packet << " packet_length: " << packet_length << std::endl;
-
-    return packet;
+    std::cout << " buffer: ";
+    for(int i = 0; i < BUFLEN; i++) printf("%c",message_buf[i]);
+    puts("\n");
+    return node_counter;
 }
 
-void parser(std::string * packets, std::map<std::string, MapNodePtr *> InputMap)
+int parser(char * packet, std::map<std::string, MapNodePtr *> InputMap)
 {
-    std::stringstream packet_sstream;
-    packet_sstream.str(*packets);
+    
 
     char packet_number, node_data_type;
-    bool packet_split = false;
+    bool name_found = false;
 
     MapNodePtr * cur_node;
     std::string node_name;
-    int node_data_length;
-
-    //while(!packet_sstream.good()){}
-    packet_sstream.get(packet_number);
-
-    std::cout << "parsing..." << std::endl << static_cast<int>(packet_number) << " : " <<std::endl;
-
-    if(static_cast<int>(packet_number) != 0) { packet_split = true; }
-
-    while(packet_sstream.rdbuf()->in_avail())
-    {
+    int node_data_length, packet_cursor_0, packet_cursor_1, packet_counter;
 
 
+    std::cout << "parsing..." << std::endl; 
+    packet_cursor_0 = 0;
+    packet_counter = 0;
 
-        std::getline(packet_sstream, node_name, '\0'); 
-        std::cout <<"name: " << node_name << std::endl;
+    //each iteration of the while loop is one packet
+    while(packet[packet_cursor_0] > 31 && packet_cursor_0 < BUFLEN){
+        
+        //extract name
+        node_name = "";
+        for(int i = packet_cursor_0; i < BUFLEN; i++) 
+        {
+            if(packet[i])
+            {
 
+                node_name.push_back(packet[i]);
+                packet_cursor_0++;
+            }
+            else
+            {
+                packet_cursor_0++;
+                break;
+            }
+        }
+
+        std::cout <<"name: " << node_name;
+        
+        //get current node and data length
         cur_node = InputMap.at(node_name);
-
-        //packet_sstream.get(node_data_type);
         node_data_length = cur_node->dataLength;
+        
+        std::cout << " node_data_length: " << node_data_length << std::endl;
+        
 
-        std::cout << "node_data_length " << node_data_length << std::endl;
-        if(node_data_length == 1) node_data_length += 1;
+        
+        //std::cout << "node_data_length: " << node_data_length << std::endl;
         char * node_data = new char[node_data_length];
-
-        //get data from stream
-        packet_sstream.get(node_data, node_data_length );
-        std::cout << "node_data " << node_data << std::endl;
+        node_data = &packet[packet_cursor_0];
+        printf("node_data:%i:\n",packet[packet_cursor_0]); 
+        packet_cursor_1 = packet_cursor_0 + node_data_length;
+        while(packet_cursor_0 < packet_cursor_1)  std::cout << packet[packet_cursor_0++];
+        std::cout << std::endl;
+        //get pointer to data in string
+       
         //set data
         cur_node->setData(node_data);
+        //print data        
+        
+        //prove that write was successful
+        std::cout << node_name << " : " << cur_node->getDataString() << " : " << std::endl;
 
-        //std::cout << node_name << " : " << node_data_type << " : " << cur_node->getData() << " : " << std::endl;
-        std::cout << node_name << " : " << cur_node->getData() << " : " << std::endl;
-
-        delete node_data;
+        // delete node_data;
+        packet_counter ++;
     }
+    return packet_counter;
 }
 // void receiver() {
 //   char buf[BUFLEN];
@@ -344,6 +377,11 @@ void parser(std::string * packets, std::map<std::string, MapNodePtr *> InputMap)
 // }
 int main(){
 
+    int * first,first_0,first_1,first_2,first_3;
+    double * second,second_0,second_1,second_2,second_3;
+    float * third,third_0,third_1,third_2,third_3;
+    bool * fifth,fifth_0,fifth_1,fifth_2,fifth_3;
+
     MapNode<int> * node1 = new MapNode<int>(std::string("first"),5);
     MapNode<double> * node2 = new MapNode<double>(std::string("second"),8.1);
     MapNode<float> * node3 = new MapNode<float>(std::string("third"),3.1);
@@ -369,7 +407,13 @@ int main(){
     MapNode<float> * node43 = new MapNode<float>(std::string("third_3"),3.1);
     //MapNode<std::string> * node44 = new MapNode<std::string>(std::string("fourth_3"),"foofighters 5");
     MapNode<bool> * node45 = new MapNode<bool>(std::string("fifth_3"),true);
-    std::map<std::string, MapNodePtr *> InputMap = 
+    
+    first = node1->getData();
+    second = node2->getData();
+    third = node3->getData();
+    fifth = node5->getData();
+    
+    std::map<std::string, MapNodePtr *> InputMap_0 = 
     {
         {node1->name,(MapNodePtr *)node1},
         {node2->name,(MapNodePtr *)node2},
@@ -399,71 +443,26 @@ int main(){
 
     };
 
-    std::stringstream foo;
-    std::stringstream bar;
-    std::string food1, food2, food3, food4, food5, food6, food7;
-    char fine1,fine2;
-    char fine3[18];
-    char fine4[12];
-    // food4 = std::string("home");
-    // food5 = std::string("goon!");    
-    // food6 = std::string("qwert asdf");
-    // foo << 'f' << 'n' << food4 << '\0' << food5 << '\0' << food6 ;
-    // foo.get( fine1 );
-    // foo.get( fine2 );
+    std::map<std::string, MapNodePtr *> InputMap_1;
+    InputMap_1 = InputMap_0;
 
-    // std::getline(foo , food1, '\0');
-    // std::getline(foo , food2, '\0');
-    // foo.get(fine3, food6.length() + 1);
-    // std::cout << fine1 << " : " << fine2 << " : " << food1 << " : " << food2 << " : " << fine3 << std::endl;
-    char * n = "name";
-    char nulll = 'n';
-    char * N;
-    float D;
-    float d = 75.1;
-    int l = 0;
-    char * buf = new char[BUFLEN];
-    memcpy(buf, n, 5);
-    std::cout << buf << std::endl;
-    l += sizeof(n);
-    // memcpy(buf + 5, &nulll, 1);
-    // std::cout << std::string(buf) << std::endl;
-    memcpy(buf + 5, &d, sizeof(float));
-    l = 0;
-    // D = (float*)(&buf[5]);
-    // std::cout << buf << *D<< std::endl;
-    int i;
-    std::string name_0;
-    for(i = 0; i<(BUFLEN-1); i++){
-        if(buf[i] == '\0'){
-            std::cout << "null!" << std::endl;
-            break;
-        }
-        else
-        name_0.push_back(buf[i]);
-    }
-    memcpy(&D, buf + i + 1, sizeof(float));
-
-    // memcpy(&N , buf, sizeof(n)+1);
-    // memcpy(&D, buf + sizeof(n)+1, sizeof(d));
-
-    // std::cout << " : " << N << " : " << D << " : " <<std::endl;
-
-    // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" ;
-    // food7 = foo.str();
-    // std::cout << ":" << foo.str() << ":" << std::endl;
-
-    // foo.str("");
-
-    // std::cout << ":" << foo.str() << ":" << std::endl;
+    *first = *first * 2;
+    *second = *second * 3;
+    *third = *third * 4;
+    *fifth = false;
+    std::cout << std::endl <<std::endl << InputMap_1.at("first")->name << " " << *first << std::endl;
+    std::cout << std::endl <<std::endl << InputMap_1.at("second")->name << " " << *second << std::endl;
+    std::cout << std::endl <<std::endl << InputMap_1.at("third")->name << " " << *third<< std::endl;
+    std::cout << std::endl <<std::endl << InputMap_1.at("fifth")->name << " " << *fifth << std::endl;
     
-    // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" << std::endl;
-    
+    char * packet_buffer = new char[BUFLEN]; 
+    std::cout<< "number of packets sent: " << serialize(InputMap_0,packet_buffer) << std::endl;
+    std::cout<< "number of packets received: " << parser(packet_buffer,InputMap_1) << std::endl;
 
-
-    std::cout << " : " << name_0 << " : " << D << " : " << std::endl;
-
-   //parser(serialize(InputMap),InputMap);
+    std::cout << std::endl <<std::endl << InputMap_1.at("first")->name << " " << *first << std::endl;
+    std::cout << std::endl <<std::endl << InputMap_1.at("second")->name << " " << *second << std::endl;
+    std::cout << std::endl <<std::endl << InputMap_1.at("third")->name << " " << *third<< std::endl;
+    std::cout << std::endl <<std::endl << InputMap_1.at("fifth")->name << " " << *fifth << std::endl;
 
 return 0;
 }
