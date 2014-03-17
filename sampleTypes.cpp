@@ -198,6 +198,12 @@ public:
         dataLength = sizeof(T);
     }
 
+    MapNode(std::string n, T d, size_t s) : MapNodePtr(n), data(d){
+        dataType = typeid_int<T>(d);
+        dataLength = s;
+    }
+
+
     MapNode(std::string n, type_enum dT, size_t dL, T d) : MapNodePtr(n, dT, dL), data(d){}
       
 };

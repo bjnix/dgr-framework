@@ -31,97 +31,43 @@ using namespace std;
  */
 class MapNodePtr{
 public:
-  std::string dataType;
-  std::string name;
+    std::string name;
+    type_enum dataType;
+    size_t dataLength;
+    virtual char * getDataString(void) =0;
+    virtual void setData(char *) =0;
+    //setData callback function?
+    MapNodePtr(std::string n) : name(n){}
 };
 
+//only works with POD types
 template<typename T>
 class MapNode : public MapNodePtr
 {
-public:
-  //MapNode(std::string n, T* d );
-  MapNode(std::string n, T* d );
-  MapNode(std::string n, T d);
-  
-  typedef struct{
-    const char * name;
+protected:
     T data;
-  }packet;
 
-  packet packetData;
-  int packetLength;
-};
+public:
+    T * getData(){ return &data;}
 
-template<typename T>
-MapNode<T>::MapNode(std::string n, T* d) {
-  name = n;
-  packetData.name = &n[1];
-  packetData.data = *d;
-  dataType = typeid(*d).name();
-  packetLength = sizeof(packetData.name) + sizeof(packetData.data);
-};
-template<typename T>
-MapNode<T>::MapNode(std::string n, T d) {
-  name = n;
-  packetData.name = &n[1];
-  packetData.data = d;
-  dataType = typeid(d).name();
-  packetLength = sizeof(packetData.name) + sizeof(packetData.data);
-};
-int serialize(std::map<std::string, MapNodePtr *> InputMap)
-{
-  char buf [BUFLEN];
-  int length = 0;
-  void * sendStruct;
-
-  for(auto it = InputMap.begin();it!= InputMap.end();it++)
-  {
-
-    if(length >= (BUFLEN - 15))
+    char * getDataString(void)
     {
-      return 0;
+        char * data_array = new char[dataLength];
+        memcpy(data_array, &data, dataLength);        
+        return data_array;
     }
-    if(it->second->dataType == typeid(float).name()){ 
-      MapNode<float> * cur_node = (MapNode<float> *) it->second; 
-      sendStruct = &(cur_node->packetData);
-      length = cur_node->packetLength;
-      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
+    void setData(char * data_array)
+    {
+        memcpy(&data, data_array, dataLength);
+        //std::cout<< data << std::endl;
     }
-    else if(it->second->dataType == typeid(double).name()){ 
-      MapNode<double> * cur_node = (MapNode<double> *) it->second; 
-      sendStruct = &(cur_node->packetData);
-      length = cur_node->packetLength;
-      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-    }
-    else if(it->second->dataType == typeid(int).name()){ 
-      MapNode<int> * cur_node = (MapNode<int> *) it->second; 
-      sendStruct = &(cur_node->packetData);
-      length = cur_node->packetLength;length = cur_node->packetLength;
-      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-    }
-    else if(it->second->dataType == typeid(bool).name()){ 
-      MapNode<bool> * cur_node = (MapNode<bool> *) it->second; 
-      sendStruct = &(cur_node->packetData);
-      length = cur_node->packetLength;
-      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-    }
-    else if(it->second->dataType == typeid(std::string).name()){ 
-      MapNode<std::string> * cur_node = (MapNode<std::string> *) it->second; 
-      sendStruct = &(cur_node->packetData);
-      length = cur_node->packetLength;
-      std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-    }
-    else{ return 1;}
 
-    if (sendto(s, sendStruct, length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+    MapNode(std::string n, T d) : MapNodePtr(n), data(d){
+        dataType = typeid_int<T>(d);
+        dataLength = sizeof(T);
+    }
 
-    
-  }
-  return 0;
-}
-
-
-
+};
 
 #ifdef DGR_MASTER // if MASTER:
 char *RELAY_IP = NULL;
@@ -260,57 +206,62 @@ void sender() {
   
   while (true) 
   {
-    
-    char buf [BUFLEN];
-    int length = 0;
-    void * sendStruct;
+    //packet_buffer properties
+    char * packet_buffer = new char[BUFLEN];
+    int packet_length = 0;
+    unsigned char packet_counter = 0;
+    //current node properties
+    char * node_buf;
+    int node_length = 0;
+    int node_counter = 0;
+
+    bool first_node = true;
+    bool last_node = false;
+
 
     for(auto it = InputMap.begin();it!= InputMap.end();it++)
     {
+       
+        node_length = 0;
+        if(std::next(it) == InputMap.end()){ last_node = true;
+        std::cout << "last node!" << std::endl;}
+        if(first_node) std::cout<< "first node!" << std::endl;
+        
+        MapNodePtr * cur_node = it->second;
+        std::string cur_name = cur_node->name;
+        char* cur_data = cur_node->getDataString();
+        int cur_data_length = cur_node->dataLength;
 
-      if(length >= (BUFLEN - 15))
-      {
-        return 0;
-      }
-      if(it->second->dataType == typeid(float).name())
-      { 
-        MapNode<float> * cur_node = (MapNode<float> *) it->second; 
-        sendStruct = &(cur_node->packetData);
-        length = cur_node->packetLength;
-        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-      }
-      else if(it->second->dataType == typeid(double).name())
-      { 
-        MapNode<double> * cur_node = (MapNode<double> *) it->second; 
-        sendStruct = &(cur_node->packetData);
-        length = cur_node->packetLength;
-        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-      }
-      else if(it->second->dataType == typeid(int).name())
-      { 
-        MapNode<int> * cur_node = (MapNode<int> *) it->second; 
-        sendStruct = &(cur_node->packetData);
-        length = cur_node->packetLength;length = cur_node->packetLength;
-        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-      }
-      else if(it->second->dataType == typeid(bool).name())
-      { 
-        MapNode<bool> * cur_node = (MapNode<bool> *) it->second; 
-        sendStruct = &(cur_node->packetData);
-        length = cur_node->packetLength;
-        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-      }
-      else if(it->second->dataType == typeid(std::string).name())
-      { 
-        MapNode<std::string> * cur_node = (MapNode<std::string> *) it->second; 
-        sendStruct = &(cur_node->packetData);
-        length = cur_node->packetLength;
-        std::cout << cur_node->name << " " << cur_node->packetData.data << " " << length << std::endl;
-      }
-      else
-      { return 1;}
+        unsigned char cur_type = cur_node->dataType;
+        
+        node_length = cur_name.length() + sizeof(char) + cur_data_length;
 
-      if (sendto(s, sendStruct, length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+        // if(first_node || last_node) node_length += sizeof(packet_counter);
+        node_buf = new char[node_length];
+        
+        //prepare node buffer
+        memcpy(node_buf, cur_name.c_str(), cur_name.length());
+        node_buf[cur_name.length()] = '\0';
+        memcpy(node_buf + cur_name.length() + 1, cur_data, cur_data_length);
+        
+        //message buffer full. send and start a new one.
+        if( (packet_length + node_length) > BUFLEN)
+        {
+            if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+            packet_counter ++;
+            packet_length = 0;
+            first_node = true;
+            it--;
+
+        }else{ // add node to packet buffer
+            memcpy(packet_buffer + packet_length, node_buf, node_length);
+            packet_length += node_length;
+            first_node = false;
+            node_counter ++;
+        }
+
+    }
+      if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
 
       
     }
@@ -324,27 +275,37 @@ void sender() {
 // The SLAVES receive state data from teh RELAY via UDP packets and parse the
 // data around a delimiter (this example uses ~) in an infinite loop.
 void receiver() {
-  char buf[BUFLEN];
-  vector<string> splits;
-  vector<string> packet;
-  //printf("in receiver");
+  char packet_buffer[BUFLEN];
+
+  MapNodePtr * cur_node;
+  std::string node_name;
+  int node_data_length, packet_cursor,
+
   while (true) {
-    if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
+    if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,
       &slen) == -1) error("ERROR recvfrom()");
     receivedPacket = true;
     framesPassed = 0;
-    string itrmdt(buf);
-    //printf("recieved: %s\n", buf);
-    splits = split(itrmdt, '~');
-    // NOTE: This simple example only sends/receives a single value (rotation),
-    // but it sends rotation twice, separated by a ~ in order to demonstrate the
-    // technique of how you can send multiple values separated by ~ and then
-    // get the values back out, as shown here.
-    for(auto splitsIter = splits.begin(); splitsIter != splits.end(); splitsIter++)
-    {
-      packet = split(*splitsIter, '`');
-      InputMap.at(packet[0]) = (float)atof(packet[1].c_str());
-      
+    while(packet_buffer[packet_cursor] > 31 && packet_cursor < BUFLEN){
+        
+        //extract name
+        node_name = "";
+        for(int i = packet_cursor; i < BUFLEN; i++) 
+        {
+            if(packet_buffer[i]) { node_name.push_back(packet_buffer[i]); packet_cursor++; }
+            else { packet_cursor++; break; }
+        }
+
+        //get current node and data length
+        cur_node = InputMap.at(node_name);
+        node_data_length = cur_node->dataLength;
+
+        char * node_data = new char[node_data_length];
+        node_data = &packet_buffer[packet_cursor];
+        //set data
+        cur_node->setData(node_data);
+        packet_cursor += node_data_length;
+        //print data        
     }
   }
 }
