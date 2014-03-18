@@ -165,7 +165,6 @@ public:
     virtual void setData(char *) =0;
     //setData callback function?
     MapNodePtr(std::string n) : name(n){}
-    MapNodePtr(std::string n, type_enum dT, size_t dL) : name(n), dataType(dT), dataLength(dL){}
 };
 
 //only works with POD types
@@ -177,18 +176,15 @@ protected:
 
 public:
     T * getData(){ return &data;}
-    char * getDataString(void){
-        
-        char * data_array = new char[dataLength];
-        memcpy(data_array, &data, dataLength);
-        // memcpy(&data, data_array, dataLength);
-        // std::cout<< data << std::endl;
 
-        
+    char * getDataString(void)
+    {
+        char * data_array = new char[dataLength];
+        memcpy(data_array, &data, dataLength);        
         return data_array;
     }
-    void setData(char * data_array){
-
+    void setData(char * data_array)
+    {
         memcpy(&data, data_array, dataLength);
         //std::cout<< data << std::endl;
     }
@@ -236,8 +232,6 @@ int serialize(std::map<std::string, MapNodePtr *> InputMap, char * message_buf)
 
         unsigned char cur_type = cur_node->dataType;
         
-
-        //node_length = cur_name.length() + sizeof(char) + sizeof(cur_type) + cur_data_length;
         node_length = cur_name.length() + sizeof(char) + cur_data_length;
 
         // if(first_node || last_node) node_length += sizeof(packet_counter);
@@ -259,21 +253,18 @@ int serialize(std::map<std::string, MapNodePtr *> InputMap, char * message_buf)
 
         }else{
         
-            // if(first_node) { message_buf << packet_counter; }
-            //switch comment to include type character 
-            //message_buf << cur_node->name << '\0' << cur_type << cur_node->getDataString();
             
 
             memcpy(message_buf + packet_length, node_buf, node_length);
-            std::cout << "buffer: "<< std::endl;
-            for(int i = 0; i < BUFLEN; i++){
-                if(message_buf[i] != '\0'){
-                    if(message_buf[i] > 31) printf("%c",message_buf[i]); 
-                    else printf(":%i",message_buf[i]);
-                }
-                else printf("| ");
-            }
-            std::cout << "::" << std::endl;   
+            // std::cout << "buffer: "<< std::endl;
+            // for(int i = 0; i < BUFLEN; i++){
+            //     if(message_buf[i] != '\0'){
+            //         if(message_buf[i] > 31) printf("%c",message_buf[i]); 
+            //         else printf(":%i",message_buf[i]);
+            //     }
+            //     else printf("| ");
+            // }
+            // std::cout << "::" << std::endl;   
             packet_length += node_length;
 
 
@@ -294,7 +285,6 @@ int parser(char * packet, std::map<std::string, MapNodePtr *> InputMap)
     
 
     char packet_number, node_data_type;
-    bool name_found = false;
 
     MapNodePtr * cur_node;
     std::string node_name;

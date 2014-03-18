@@ -18,6 +18,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <typeinfo>
 
 #define RELAY_LISTEN_PORT 25885
 #define SLAVE_LISTEN_PORT 25884
@@ -231,7 +232,7 @@ double frustum_left,frustum_right,frustum_bottom,frustum_top;
 int screen_width,screen_height;
 #endif
 
-std::map<std::string,float> InputMap = {
+std::map<std::string,MapNodePtr *> InputMap = {
 // parameters common to both MASTER and SLAVE
 // ADD YOUR STATE PARAMETERS THAT NEED TO BE PASSED FROM MASTER TO SLAVE HERE.
     {"data1",0.0f},
