@@ -232,13 +232,25 @@ double frustum_left,frustum_right,frustum_bottom,frustum_top;
 int screen_width,screen_height;
 #endif
 
+MapNode<float> * node1 = new MapNode<float>(std::string("node1"),0.0f);
+MapNode<float> * node2 = new MapNode<float>(std::string("node2"),0.0f);
+MapNode<float> * node3 = new MapNode<float>(std::string("node3"),0.0f);
+MapNode<float> * node4 = new MapNode<float>(std::string("node4"),0.0f);
+
+float data1 = *(node1->getData());
+float data2 = *(node2->getData());
+float data3 = *(node3->getData());
+float data4 = *(node4->getData());
+
 std::map<std::string,MapNodePtr *> InputMap = {
+
 // parameters common to both MASTER and SLAVE
 // ADD YOUR STATE PARAMETERS THAT NEED TO BE PASSED FROM MASTER TO SLAVE HERE.
-    {"data1",0.0f},
-    {"data2",0.0f},
-    {"data3",0.0f},
-    {"data4",0.0f}
+    
+    {node1->name, (MapNodePtr *) node1},
+    {node2->name, (MapNodePtr *) node2},
+    {node3->name, (MapNodePtr *) node3},
+    {node4->name, (MapNodePtr *) node4}
   };
 
 // Helper function for splitting strings along a delimiter (such as ~)
@@ -282,10 +294,10 @@ void display(void) {
 #ifdef DGR_MASTER   // All code that updates state variables should be exclusive to the MASTER.
                     // Forbidding the SLAVES from updating state variables and only getting them
                     // from the MASTER is what guarantees that the processes all stay synchronized.
-  InputMap.at("data1") += 1.0f;
-  InputMap.at("data2") += 2.0f;
-  InputMap.at("data3") += 5.0f;
-  InputMap.at("data4") += 0.01f;
+  data1 += 1.0f;
+  data2 += 2.0f;
+  data3 += 5.0f;
+  data4 += 0.01f;
 
 #else  // The slave automatically shuts itself off if it hasn't received
        // any packets within a few seconds (it gives itself longer if it
@@ -323,13 +335,13 @@ void display(void) {
   glTranslatef(0,0,-30);
   glScalef (8.0, 8.0, 8.0);
   glPushMatrix();
-  glColor3ub(InputMap.at("data2"),InputMap.at("data3"),0);
-  glRotatef(InputMap.at("data1"), 0.0f, 1.0f, 0.0f);
+  glColor3ub(data2,data3,0);
+  glRotatef(data1, 0.0f, 1.0f, 0.0f);
   glutWireCube (1.0);
   glPopMatrix();
-  glColor3ub(InputMap.at("data2"),InputMap.at("data3"),0);
-  glRotatef(InputMap.at("data1"), 0.0f, 1.0f, 0.0f);
-  glutWireCube (InputMap.at("data4"));
+  glColor3ub(data2,data3,0);
+  glRotatef(data1, 0.0f, 1.0f, 0.0f);
+  glutWireCube (data4);
 
   
   glutSwapBuffers();
