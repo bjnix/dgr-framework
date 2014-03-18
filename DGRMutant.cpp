@@ -92,7 +92,7 @@ enum type_enum      //enumeration of data
     DGR_PTR_STD_MULTISET,       //60 std::multiset *
     DGR_PTR_STD_MAP,            //61 std::map *
     DGR_PTR_STD_MULTIMAP,       //62 std::multimap *
- 
+
     //Unordered associative container pointers
     DGR_PTR_STD_UNORDERED_SET,      //63 std::unordered_set *
     DGR_PTR_STD_UNORDERED_MULTISET, //64 std::unordered_multiset *
@@ -103,7 +103,7 @@ enum type_enum      //enumeration of data
     //command section 128->256
     DGR_PTR_FUNCTION = 128,          //128 function pointer for callbacks   
     CMD_NEW_OBJECT
-                
+
 };
 template<typename T>
 type_enum typeid_int(T data_typeid)
@@ -121,53 +121,18 @@ type_enum typeid_int(T data_typeid)
     else if(typeid(float *)  == typeid(data_typeid)) return DGR_PTR_FLOAT;
     else if(typeid(char *)   == typeid(data_typeid)) return DGR_PTR_CHAR;
     else if(typeid(bool *)   == typeid(data_typeid)) return DGR_PTR_BOOL;
-
-    else if(typeid(std::string)             == typeid(data_typeid)) return DGR_STD_STRING;
-    // if(typeid(std::array<U>)               == typeid(data_typeid)) return DGR_STD_ARRAY;
-    // if(typeid(std::vector)              == typeid(data_typeid)) return DGR_STD_VECTOR;
-    // if(typeid(std::deque))              == typeid(data_typeid)) return DGR_STD_DEQUE;
-    // if(typeid(std::forward_list)        == typeid(data_typeid)) return DGR_STD_FORWARD_LIST;
-    // if(typeid(std::list)                == typeid(data_typeid)) return DGR_STD_LIST;
-    // if(typeid(std::stack)               == typeid(data_typeid)) return DGR_STD_STACK;
-    // if(typeid(std::queue)               == typeid(data_typeid)) return DGR_STD_QUEUE;
-    // if(typeid(std::priority_queue)      == typeid(data_typeid)) return DGR_STD_PRIORITY_QUEUE;
-    // if(typeid(std::set)                 == typeid(data_typeid)) return DGR_STD_SET;
-    // if(typeid(set::multiset)            == typeid(data_typeid)) return DGR_STD_MULTISET;
-    // if(typeid(set::map)                 == typeid(data_typeid)) return DGR_STD_MAP;
-    // if(typeid(set::multimap)            == typeid(data_typeid)) return DGR_STD_MULTIMAP;
-    // if(typeid(set::unordered_set)       == typeid(data_typeid)) return DGR_STD_UNORDERED_SET;
-    // if(typeid(set::unordered_multiset)  == typeid(data_typeid)) return DGR_STD_UNORDERED_MULTISET;
-    // if(typeid(set::unordered_map)       == typeid(data_typeid)) return DGR_STD_UNORDERED_MAP;
-    // if(typeid(set::unordered_multimap)  == typeid(data_typeid)) return DGR_STD_UNORDERED_MULTIMAP;
-
-    // if(typeid(std::string *)            == typeid(data_typeid)) return DGR_PTR_STD_STRING;
-    // if(typeid(std::array *)             == typeid(data_typeid)) return DGR_PTR_STD_ARRAY;
-    // if(typeid(std::vector *)            == typeid(data_typeid)) return DGR_PTR_STD_VECTOR;
-    // if(typeid(std::deque *)             == typeid(data_typeid)) return DGR_PTR_STD_DEQUE;
-    // if(typeid(std::forward_list *)      == typeid(data_typeid)) return DGR_PTR_STD_FORWARD_LIST;
-    // if(typeid(std::list *)              == typeid(data_typeid)) return DGR_PTR_STD_LIST;
-    // if(typeid(std::stack *)             == typeid(data_typeid)) return DGR_PTR_STD_STACK;
-    // if(typeid(std::queue *)             == typeid(data_typeid)) return DGR_PTR_STD_QUEUE;
-    // if(typeid(std::priority_queue *)    == typeid(data_typeid)) return DGR_PTR_STD_PRIORITY_QUEUE;
-    // if(typeid(std::set *)               == typeid(data_typeid)) return DGR_PTR_STD_SET;
-    // if(typeid(set::multiset *)          == typeid(data_typeid)) return DGR_PTR_STD_MULTISET;
-    // if(typeid(set::map *)               == typeid(data_typeid)) return DGR_PTR_STD_MAP;
-    // if(typeid(set::multimap *)          == typeid(data_typeid)) return DGR_PTR_STD_MULTIMAP;
-    // if(typeid(set::unordered_set *)     == typeid(data_typeid)) return DGR_PTR_STD_UNORDERED_SET;
-    // if(typeid(set::unordered_multiset *)== typeid(data_typeid)) return DGR_PTR_STD_UNORDERED_MULTISET;
-    // if(typeid(set::unordered_map *)     == typeid(data_typeid)) return DGR_PTR_STD_UNORDERED_MAP;
-    // if(typeid(set::unordered_multimap *)== typeid(data_typeid)) return DGR_PTR_STD_UNORDERED_MULTIMAP;
-     else{
+    else
+    {
         return DGR_VOID;
-     }
+    }
 
 }
 /**
  * Name: MapNode
  * Description: A template class for a map node
  */
-class MapNodePtr{
-public:
+ class MapNodePtr{
+ public:
     std::string name;
     type_enum dataType;
     size_t dataLength;
@@ -179,22 +144,21 @@ public:
 
 //only works with POD types
 template<typename T>
-class MapNode : public MapNodePtr
-{
+class MapNode : public MapNodePtr{
 protected:
     T data;
 
 public:
-    T * getData(){ return &data;}
+    T * getData(){ 
+        return &data;
+    }
 
-    char * getDataString(void)
-    {
+    char * getDataString(void){
         char * data_array = new char[dataLength];
         memcpy(data_array, &data, dataLength);        
         return data_array;
     }
-    void setData(char * data_array)
-    {
+    void setData(char * data_array){
         memcpy(&data, data_array, dataLength);
         //std::cout<< data << std::endl;
     }
@@ -232,127 +196,118 @@ double frustum_left,frustum_right,frustum_bottom,frustum_top;
 int screen_width,screen_height;
 #endif
 
+// parameters common to both MASTER and SLAVE
+// ADD YOUR STATE PARAMETERS THAT NEED TO BE PASSED FROM MASTER TO SLAVE HERE.
+
 MapNode<float> * node1 = new MapNode<float>(std::string("node1"),0.0f);
 MapNode<float> * node2 = new MapNode<float>(std::string("node2"),0.0f);
 MapNode<float> * node3 = new MapNode<float>(std::string("node3"),0.0f);
 MapNode<float> * node4 = new MapNode<float>(std::string("node4"),0.0f);
 
-float data1 = *(node1->getData());
-float data2 = *(node2->getData());
-float data3 = *(node3->getData());
-float data4 = *(node4->getData());
+float * data1 = (node1->getData());
+float * data2 = (node2->getData());
+float * data3 = (node3->getData());
+float * data4 = (node4->getData());
 
 std::map<std::string,MapNodePtr *> InputMap = {
-
-// parameters common to both MASTER and SLAVE
-// ADD YOUR STATE PARAMETERS THAT NEED TO BE PASSED FROM MASTER TO SLAVE HERE.
-    
     {node1->name, (MapNodePtr *) node1},
     {node2->name, (MapNodePtr *) node2},
     {node3->name, (MapNodePtr *) node3},
     {node4->name, (MapNodePtr *) node4}
-  };
-
-// Helper function for splitting strings along a delimiter (such as ~)
-vector<string> &split(const string &s, char delim, vector<string> &elems) {
-  stringstream ss(s);
-  string item;
-  while (getline(ss, item, delim)) {
-    elems.push_back(item);
-  }
-  return elems;
-}
-
-// Helper function for splitting strings along a delimiter (such as ~)
-vector<string> split(const string &s, char delim) {
-  vector<string> elems;
-  return split(s, delim, elems);
-}
+};
 
 // Exit with error message
-void error(const char *msg) {
-  perror(msg);
-  exit(1);
+void error(const char *msg) 
+{
+    perror(msg);
+    exit(1);
 }
 
 // Register a callback that is called when the program exits so we can be
 // sure to close the port we're using.
-void exitCallback() {
-  close(s);
+void exitCallback() 
+{
+    close(s);
 }
 
-void init(void) {
-  glClearColor (0.0, 0.0, 0.0, 0.0);
-  glShadeModel (GL_FLAT);
+void init(void) 
+{
+    glClearColor (0.0, 0.0, 0.0, 0.0);
+    glShadeModel (GL_FLAT);
 }
 
 // OpenGL display function.
 // Your graphics rendering code will go here.
 // If you do any state updating in your display function, be sure to do it for the MASTER ONLY.
-void display(void) {
+void display(void) 
+{
 
 #ifdef DGR_MASTER   // All code that updates state variables should be exclusive to the MASTER.
                     // Forbidding the SLAVES from updating state variables and only getting them
                     // from the MASTER is what guarantees that the processes all stay synchronized.
-  data1 += 1.0f;
-  data2 += 2.0f;
-  data3 += 5.0f;
-  data4 += 0.01f;
+    *data1 += 1.0f;
+    *data2 += 2.0f;
+    *data3 += 5.0f;
+    *data4 += 0.01f;
 
 #else  // The slave automatically shuts itself off if it hasn't received
        // any packets within a few seconds (it gives itself longer if it
        // hasn't received any packets at all yet)
        // Assumes a 60fps framerate
-  framesPassed++;
-  if (receivedPacket) {
-    if (framesPassed > 180) exit(EXIT_SUCCESS);
-  } else {
-    if (framesPassed > 900) exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
+    framesPassed++;
+    if (receivedPacket) 
+    {
+        if (framesPassed > 180) exit(EXIT_SUCCESS);
+    } 
+    else 
+    {
+        if (framesPassed > 900) exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
                                                 // you can increase this value so the slaves don't prematurely
                                                 // shut themselves off.
-  }
+    }
 
 #endif
 
-  // Display code common to both the MASTER and SLAVE (except the frustum call)
-  // This simple example just displays a wireframe cube and slowly rotates it.
-  glClear (GL_COLOR_BUFFER_BIT);
-  glColor3f (1.0, 1.0, 1.0);
-  glLoadIdentity ();
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity ();
-  float x = 0;
-  float y = 0;
-  float z = 1.5;
+      // Display code common to both the MASTER and SLAVE (except the frustum call)
+      // This simple example just displays a wireframe cube and slowly rotates it.
+    glClear (GL_COLOR_BUFFER_BIT);
+    glColor3f (1.0, 1.0, 1.0);
+    glLoadIdentity ();
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity ();
+    float x = 0;
+    float y = 0;
+    float z = 1.5;
 
 #ifdef DGR_MASTER
-  glFrustum (-1.03*3-x, 1.03*3-x, .28-z, 2.6-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
+    glFrustum (-1.03*3-x, 1.03*3-x, .28-z, 2.6-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
 #else
-  glFrustum (frustum_left-x, frustum_right-x, frustum_bottom-z, frustum_top-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
+    glFrustum (frustum_left-x, frustum_right-x, frustum_bottom-z, frustum_top-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
 #endif
-  glMatrixMode (GL_MODELVIEW);
-  gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-  glTranslatef(0,0,-30);
-  glScalef (8.0, 8.0, 8.0);
-  glPushMatrix();
-  glColor3ub(data2,data3,0);
-  glRotatef(data1, 0.0f, 1.0f, 0.0f);
-  glutWireCube (1.0);
-  glPopMatrix();
-  glColor3ub(data2,data3,0);
-  glRotatef(data1, 0.0f, 1.0f, 0.0f);
-  glutWireCube (data4);
+    glMatrixMode (GL_MODELVIEW);
+    gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    glTranslatef(0,0,-30);
+    glScalef (8.0, 8.0, 8.0);
+    glPushMatrix();
+    glColor3ub(*data2,*data3,0);
+    glRotatef(*data1, 0.0f, 1.0f, 0.0f);
+    glutWireCube (1.0);
+    glPopMatrix();
+    glColor3ub(*data2,*data3,0);
+    glRotatef(*data1, 0.0f, 1.0f, 0.0f);
+    glutWireCube(*data4);
 
-  
-  glutSwapBuffers();
-  glutPostRedisplay();
+
+    glutSwapBuffers();
+    glutPostRedisplay();
 }
 
 #if DGR_MASTER // if MASTER:
 // The MASTER sends all state data to the RELAY (which is run on the IVS head node)
 // via UDP packets in an infinite loop.
-void sender() {
-  
+void sender() 
+{
+
     while (true) 
     {
         //packet_buffer properties
@@ -410,8 +365,8 @@ void sender() {
         }
         if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
 
+        usleep(32000);
     }
-    usleep(32000);
 }
 
 
@@ -419,91 +374,105 @@ void sender() {
 
 // The SLAVES receive state data from teh RELAY via UDP packets and parse the
 // data around a delimiter (this example uses ~) in an infinite loop.
-void receiver() {
-  char packet_buffer[BUFLEN];
+void receiver() 
+{
+    char packet_buffer[BUFLEN];
 
-  MapNodePtr * cur_node;
-  std::string node_name;
-  int node_data_length, packet_cursor,
+    MapNodePtr * cur_node;
+    std::string node_name;
+    int node_data_length, packet_cursor;
 
-  while (true) {
-    if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,
-      &slen) == -1) error("ERROR recvfrom()");
-    receivedPacket = true;
-    framesPassed = 0;
-    while(packet_buffer[packet_cursor] > 31 && packet_cursor < BUFLEN){
-        
-        //extract name
-        node_name = "";
-        for(int i = packet_cursor; i < BUFLEN; i++) 
+    while (true){
+        if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,
+          &slen) == -1) error("ERROR recvfrom()");
+        receivedPacket = true;
+        framesPassed = 0;
+        packet_cursor = 0;
+
+        while( (packet_buffer[packet_cursor] > 31) && (packet_cursor < BUFLEN) )
         {
-            if(packet_buffer[i]) { node_name.push_back(packet_buffer[i]); packet_cursor++; }
-            else { packet_cursor++; break; }
+
+                        //extract name
+            node_name = "";
+            for(int i = packet_cursor; i < BUFLEN; i++) 
+            {
+                if(packet_buffer[i]) 
+                { 
+                    node_name.push_back(packet_buffer[i]); 
+                    packet_cursor++; 
+                }
+                else 
+                { 
+                    packet_cursor++; 
+                    break; 
+                }
+            }
+
+                        //get current node and data length
+            cur_node = InputMap.at(node_name);
+            node_data_length = cur_node->dataLength;
+
+            char * node_data = new char[node_data_length];
+            node_data = &packet_buffer[packet_cursor];
+                        //set data
+            cur_node->setData(node_data);
+            packet_cursor += node_data_length;
+                        //print data        
         }
-
-        //get current node and data length
-        cur_node = InputMap.at(node_name);
-        node_data_length = cur_node->dataLength;
-
-        char * node_data = new char[node_data_length];
-        node_data = &packet_buffer[packet_cursor];
-        //set data
-        cur_node->setData(node_data);
-        packet_cursor += node_data_length;
-        //print data        
     }
-  }
 }
 #endif
 
 // MAIN FUNCTION
-int main(int argc, char** argv) {
+int main(int argc, char** argv) 
+{
 
 #ifdef DGR_MASTER
-  if (argc != 2) {
-    printf("USAGE: %s relay-ip-address\n", argv[0]);
-    return 1;
-  }
-  RELAY_IP=argv[1];
+    if (argc != 2) 
+    {
+        printf("USAGE: %s relay-ip-address\n", argv[0]);
+        return 1;
+    }
+    RELAY_IP=argv[1];
 #else // if SLAVE:
-  frustum_left = atof(argv[1]);
-  frustum_right = atof(argv[2]);
-  frustum_bottom = atof(argv[3]);
-  frustum_top = atof(argv[4]);
-  screen_width = atoi(argv[5]);
-  screen_height = atoi(argv[6]);
+    frustum_left = atof(argv[1]);
+    frustum_right = atof(argv[2]);
+    frustum_bottom = atof(argv[3]);
+    frustum_top = atof(argv[4]);
+    screen_width = atoi(argv[5]);
+    screen_height = atoi(argv[6]);
 #endif
 
-  atexit(exitCallback);
+    atexit(exitCallback);
 
-  glutInit(&argc, argv);
-  glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
+    glutInit(&argc, argv);
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
 
 #ifdef DGR_MASTER
-  glutInitWindowSize((1920*6)/8, (1080*4)/8);
+    glutInitWindowSize((1920*6)/8, (1080*4)/8);
     glutInitWindowPosition(0, 0);
     glutCreateWindow(argv[0]);
-    // This simple example doesn't use input callbacks, but the lines commented out
-    // below demonstrate that any input callbacks you use should be exclusive to the
-    // MASTER and not used by the SLAVES.
-    //glutKeyboardFunc(keyboard);
-    //glutMouseFunc(processMouse);
-    //glutMotionFunc(mousePressMove);
-    //glutPassiveMotionFunc(mouseMove);
+        // This simple example doesn't use input callbacks, but the lines commented out
+        // below demonstrate that any input callbacks you use should be exclusive to the
+        // MASTER and not used by the SLAVES.
+        //glutKeyboardFunc(keyboard);
+        //glutMouseFunc(processMouse);
+        //glutMotionFunc(mousePressMove);
+        //glutPassiveMotionFunc(mouseMove);
 #else
-  glutInitWindowSize (screen_width, screen_height); 
-  glutInitWindowPosition (0, 0);
-  glutCreateWindow ("DGR Slave Node");
+    glutInitWindowSize (screen_width, screen_height); 
+    glutInitWindowPosition (0, 0);
+    glutCreateWindow ("DGR Slave Node");
 #endif
 
-  init ();
-  glutDisplayFunc(display);
-  //glutReshapeFunc(reshape);
-  //glutIdleFunc(animate);
+    init();
+    glutDisplayFunc(display);
+      //glutReshapeFunc(reshape);
+      //glutIdleFunc(animate);
 
 #ifdef DGR_MASTER
     // socket to send data to relay
-    slen=sizeof(si_other);
+    slen = sizeof(si_other);
     so_broadcast = 1;
 
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
@@ -513,33 +482,37 @@ int main(int argc, char** argv) {
     memset((char *) &si_other, 0, sizeof(si_other));
     si_other.sin_family = AF_INET;
     si_other.sin_port = htons(RELAY_LISTEN_PORT);
-    if (inet_aton(RELAY_IP, &si_other.sin_addr) == 0) {
+
+    if (inet_aton(RELAY_IP, &si_other.sin_addr) == 0) 
+    {
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
 
-    if (pthread_create(&senderThread, NULL, sender, NULL) != 0) {
+    if (pthread_create(&senderThread, NULL, sender, NULL) != 0) 
+    {
         perror("Can't start thread, terminating\n");
         return 1;
     }
 #else
-  // Socket to read data from relay
-  slen=sizeof(si_other);
-  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
-  memset((char *) &si_me, 0, sizeof(si_me));
-  si_me.sin_family = AF_INET;
-  si_me.sin_port = htons(SLAVE_LISTEN_PORT);
-  si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-  if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) error("ERROR bind");
+      // Socket to read data from relay
+    slen=sizeof(si_other);
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
+    memset((char *) &si_me, 0, sizeof(si_me));
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(SLAVE_LISTEN_PORT);
+    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) error("ERROR bind");
 
-  // listen for updates
-  if (pthread_create(&receiverThread, NULL, receiver, NULL) != 0) {
-    perror("Can't start thread, terminating");
-    return 1;
-  }
+      // listen for updates
+    if (pthread_create(&receiverThread, NULL, receiver, NULL) != 0) 
+    {
+        perror("Can't start thread, terminating");
+        return 1;
+    }
 #endif
 
-  // go
-  glutMainLoop();
-  exit(EXIT_SUCCESS);
+      // go
+    glutMainLoop();
+    exit(EXIT_SUCCESS);
 }
