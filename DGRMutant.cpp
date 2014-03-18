@@ -353,62 +353,63 @@ void display(void) {
 // via UDP packets in an infinite loop.
 void sender() {
   
-  while (true) 
-  {
-    //packet_buffer properties
-    char * packet_buffer = new char[BUFLEN];
-    int packet_length = 0;
-    unsigned char packet_counter = 0;
-    //current node properties
-    char * node_buf;
-    int node_length = 0;
-    int node_counter = 0;
-
-    bool first_node = true;
-    bool last_node = false;
-
-
-    for(auto it = InputMap.begin();it!= InputMap.end();it++)
+    while (true) 
     {
-       
-        node_length = 0;
-        if(std::next(it) == InputMap.end()){ last_node = true;
-        
-        MapNodePtr * cur_node = it->second;
-        std::string cur_name = cur_node->name;
-        char* cur_data = cur_node->getDataString();
-        int cur_data_length = cur_node->dataLength;
+        //packet_buffer properties
+        char * packet_buffer = new char[BUFLEN];
+        int packet_length = 0;
+        unsigned char packet_counter = 0;
+        //current node properties
+        char * node_buf;
+        int node_length = 0;
+        int node_counter = 0;
 
-        node_length = cur_name.length() + sizeof(char) + cur_data_length;
+        bool first_node = true;
+        bool last_node = false;
 
-        // if(first_node || last_node) node_length += sizeof(packet_counter);
-        node_buf = new char[node_length];
-        
-        //prepare node buffer
-        memcpy(node_buf, cur_name.c_str(), cur_name.length());
-        node_buf[cur_name.length()] = '\0';
-        memcpy(node_buf + cur_name.length() + 1, cur_data, cur_data_length);
-        
-        //message buffer full. send and start a new one.
-        if( (packet_length + node_length) > BUFLEN)
+
+        for(auto it = InputMap.begin();it!= InputMap.end();it++)
         {
-            if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
-            packet_counter ++;
-            packet_length = 0;
-            first_node = true;
-            it--;
 
-        }else{ // add node to packet buffer
-            memcpy(packet_buffer + packet_length, node_buf, node_length);
-            packet_length += node_length;
-            first_node = false;
-            node_counter ++;
+            node_length = 0;
+            //if(std::next(it) == InputMap.end()){ last_node = true;}
+
+            MapNodePtr * cur_node = it->second;
+            std::string cur_name = cur_node->name;
+            char* cur_data = cur_node->getDataString();
+            int cur_data_length = cur_node->dataLength;
+
+            node_length = cur_name.length() + sizeof(char) + cur_data_length;
+
+            // if(first_node || last_node) node_length += sizeof(packet_counter);
+            node_buf = new char[node_length];
+
+            //prepare node buffer
+            memcpy(node_buf, cur_name.c_str(), cur_name.length());
+            node_buf[cur_name.length()] = '\0';
+            memcpy(node_buf + cur_name.length() + 1, cur_data, cur_data_length);
+
+            //message buffer full. send and start a new one.
+            if( (packet_length + node_length) > BUFLEN)
+            {
+                if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+                packet_counter ++;
+                packet_length = 0;
+                first_node = true;
+                it--;
+
+            }
+            else
+            { // add node to packet buffer
+                memcpy(packet_buffer + packet_length, node_buf, node_length);
+                packet_length += node_length;
+                first_node = false;
+                node_counter ++;
+            }
+
         }
+        if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
 
-    }
-      if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
-
-      
     }
     usleep(32000);
 }
