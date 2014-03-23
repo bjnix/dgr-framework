@@ -1,79 +1,166 @@
-#include <cstdlib>
-#include <unistd.h>
+// Authors:
+// James Walker   jwwalker at mtu dot edu
+// Scott A. Kuhl  kuhl at mtu dot edu
+
+#include <GL/glut.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
+#include <pthread.h>
 #include <string>
-#include <vector>
-#include <map>
 #include <typeinfo>
-#include <iostream>
-#include <sstream>
-#include <functional>
+#include "DGR_framework.h"
 
-//512 bytes for buffer length?
-#define BUFLEN 512
 
-int main(){
+#ifdef DGR_MASTER
+#else // if SLAVE:
+bool receivedPacket = false;
+int framesPassed = 0;
 
-  
+// command-line parameters
+double frustum_left,frustum_right,frustum_bottom,frustum_top;
+int screen_width,screen_height;
+#endif
 
-    std::string n;
-    std::string food1, food2, food3, food4, food5, food6, food7;
-    char fine1,fine2;
-    char fine3[18];
-    char fine4[12];
-    
-    n = "brent";
+float data1 = 0.0f;
+float data2 = 0.0f;
+float data3 = 0.0f;
+float data4 = 0.0f;
 
-    char * N;
-    float D;
-    float d = 75.1;
-    int l = 0;
-    char * buf = new char[BUFLEN];
-    memcpy(buf + l, n.c_str(), n.length());
+void init(void) 
+{
+    glClearColor (0.0, 0.0, 0.0, 0.0);
+    glShadeModel (GL_FLAT);
+}
 
-    l += n.length();
-    buf[l] = '\0';
-    l += sizeof(char);
+// OpenGL display function.
+// Your graphics rendering code will go here.
+// If you do any state updating in your display function, be sure to do it for the MASTER ONLY.
+void display(void) 
+{
 
-    memcpy(buf + l, &d, sizeof(D));
-    l = 0;
-    // D = (float*)(&buf[5]);
-    // std::cout << buf << *D<< std::endl;
-    int i;
-    bool name_found = false;
-    std::string name_0;
-    for(i = 0; i<(30); i++){
-    
-            std::cout << buf[i] << std::endl;
-            if(!name_found) name_0.push_back(buf[i]);
-            if(buf[i] == '\0') name_found = true;
-        
-  
+#ifdef DGR_MASTER   // All code that updates state variables should be exclusive to the MASTER.
+                    // Forbidding the SLAVES from updating state variables and only getting them
+                    // from the MASTER is what guarantees that the processes all stay synchronized.
+    data1 += 1.0f;
+    data2 += 2.0f;
+    data3 += 5.0f;
+    data4 += 0.01f;
+
+#else  // The slave automatically shuts itself off if it hasn't received
+       // any packets within a few seconds (it gives itself longer if it
+       // hasn't received any packets at all yet)
+       // Assumes a 60fps framerate
+    framesPassed++;
+    if (receivedPacket) 
+    {
+        if (framesPassed > 180) exit(EXIT_SUCCESS);
+    } 
+    else 
+    {
+        if (framesPassed > 900) exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
+                                                // you can increase this value so the slaves don't prematurely
+                                                // shut themselves off.
     }
-    memcpy(&D, buf + n.length() + 1, sizeof(D));
 
-    // memcpy(&N , buf, sizeof(n)+1);
-    // memcpy(&D, buf + sizeof(n)+1, sizeof(d));
+#endif
 
-    // std::cout << " : " << N << " : " << D << " : " <<std::endl;
+      // Display code common to both the MASTER and SLAVE (except the frustum call)
+      // This simple example just displays a wireframe cube and slowly rotates it.
+    glClear (GL_COLOR_BUFFER_BIT);
+    glColor3f (1.0, 1.0, 1.0);
+    glLoadIdentity ();
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity ();
+    float x = 0;
+    float y = 0;
+    float z = 1.5;
 
-    // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" ;
-    // food7 = foo.str();
-    // std::cout << ":" << foo.str() << ":" << std::endl;
+#ifdef DGR_MASTER
+    glFrustum (-1.03*3-x, 1.03*3-x, .28-z, 2.6-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
+#else
+    glFrustum (frustum_left-x, frustum_right-x, frustum_bottom-z, frustum_top-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
+#endif
+    glMatrixMode (GL_MODELVIEW);
+    gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    glTranslatef(0,0,-30);
+    glScalef (8.0, 8.0, 8.0);
+    glPushMatrix();
+    glColor3ub(data2,data3,0);
+    glRotatef(data1, 0.0f, 1.0f, 0.0f);
+    glutWireCube (1.0);
+    glPopMatrix();
+    glColor3ub(data2,data3,0);
+    glRotatef(data1, 0.0f, 1.0f, 0.0f);
+    glutWireCube(data4);
 
-    // foo.str("");
 
-    // std::cout << ":" << foo.str() << ":" << std::endl;
-    
-    // foo << static_cast<char>(61) << "name" << '\0' << static_cast<char>(65) << "dataofsize12" << std::endl;
-    
+    glutSwapBuffers();
+    glutPostRedisplay();
+}
 
 
-    std::cout << " : " << name_0 << " : " << D << " : " << std::endl;
-delete buf;
-   //parser(serialize(InputMap),InputMap);
+// MAIN FUNCTION
+int main(int argc, char** argv) 
+{
 
-return 0;
+#ifdef DGR_MASTER
+    if (argc != 2) 
+    {    
+        printf("USAGE: %s relay-ip-address\n", argv[0]);
+        return 1;
+    }
+
+    DGR_framework * myDGR = new DGR_framework(argv[1]);
+
+#else // if SLAVE:
+    frustum_left = atof(argv[1]);
+    frustum_right = atof(argv[2]);
+    frustum_bottom = atof(argv[3]);
+    frustum_top = atof(argv[4]);
+    screen_width = atoi(argv[5]);
+    screen_height = atoi(argv[6]);
+
+    DGR_framework * myDGR = new DGR_framework();
+#endif
+    //register variables
+    myDGR->addNode<float>("data1",&data1);
+    myDGR->addNode<float>("data2",&data2);
+    myDGR->addNode<float>("data3",&data3);
+    myDGR->addNode<float>("data4",&data4);
+
+
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
+
+#ifdef DGR_MASTER
+    glutInitWindowSize((1920*6)/8, (1080*4)/8);
+    glutInitWindowPosition(0, 0);
+    glutCreateWindow(argv[0]);
+        // This simple example doesn't use input callbacks, but the lines commented out
+        // below demonstrate that any input callbacks you use should be exclusive to the
+        // MASTER and not used by the SLAVES.
+        //glutKeyboardFunc(keyboard);
+        //glutMouseFunc(processMouse);
+        //glutMotionFunc(mousePressMove);
+        //glutPassiveMotionFunc(mouseMove);
+#else
+    glutInitWindowSize (screen_width, screen_height); 
+    glutInitWindowPosition (0, 0);
+    glutCreateWindow ("DGR Slave Node");
+#endif
+
+    init();
+    glutDisplayFunc(display);
+      //glutReshapeFunc(reshape);
+      //glutIdleFunc(animate);
+
+      // go
+
+    glutMainLoop();
+    close(myDGR->s);
+    exit(EXIT_SUCCESS);
 }
