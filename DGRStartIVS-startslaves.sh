@@ -17,7 +17,7 @@ fi
 
 echo "Starting slaves..."
 ROCKS_BIN=/opt/rocks/bin/rocks
-DGR_BIN=./DGRSlave
+DGR_BIN='./strace -o /dev/null ./DGRSlave'
 DIR=`pwd`
 
 ${ROCKS_BIN} run host tile-0-0 command="cd $DIR && DISPLAY=tile-0-0:0.0 ${DGR_BIN} -3.09 0 0.28   .86  5760 1080" &

@@ -1,5 +1,5 @@
 //DGR_framework.h
-#include <GL/glut.h>
+
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -10,13 +10,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <time.h>
-#include <thread>
+#include <pthread.h>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <map>
 #include <typeinfo>
-#include <system_error>
 #include <iostream>
 
 #define RELAY_LISTEN_PORT 25885
@@ -24,6 +23,43 @@
 #define BUFLEN 512
 
 
+	class MapNodePtr{
+	public:
+		std::string name;
+	    size_t dataLength;
+	    virtual char * getDataString() =0;
+	    virtual void setData(char *) =0;
+	    MapNodePtr(std::string n) : name(n){}
+	    MapNodePtr(std::string n, size_t dL) : name(n), dataLength(dL){}
+	};
+
+	//only works with POD types
+	template<typename T>
+	class MapNode : public MapNodePtr{
+
+	protected:
+	    T * data;
+
+	public:
+	    T * getData(){ 
+	        return &data;
+	    }
+
+	    char * getDataString(){
+	        char * data_array = new char[dataLength];
+	        memcpy(data_array, data, dataLength);        
+	        return data_array;
+	    }
+	    void setData(char * data_array){
+	        memcpy(data, data_array, dataLength);
+	        //std::cout<< data << std::endl;
+	    }
+
+	    MapNode(std::string n, T *d) : MapNodePtr(n), data(d){
+	        dataLength = sizeof(T);
+	    }
+	    MapNode(std::string n, T *d, size_t dL): MapNodePtr(n,dL), data(d){}
+	};
 
 class DGR_framework{
 
@@ -131,90 +167,39 @@ private:
 	 * Description: A template class for a map node
 	 */
 
-protected:
-	class MapNodePtr{
-	public:
-		std::string name;
-	    size_t dataLength;
-	    virtual char * getDataString() =0;
-	    virtual void setData(char *) =0;
-	    MapNodePtr(std::string n) : name(n){}
-	    MapNodePtr(std::string n, size_t dL) : name(n), dataLength(dL){}
-	};
-private:
-	//only works with POD types
-	template<typename T>
-	class MapNode : public MapNodePtr{
 
-	protected:
-	    T * data;
-
-	public:
-	    T * getData(){ 
-	        return &data;
-	    }
-
-	    char * getDataString(){
-	        char * data_array = new char[dataLength];
-	        memcpy(data_array, data, dataLength);        
-	        return data_array;
-	    }
-	    void setData(char * data_array){
-	        memcpy(data, data_array, dataLength);
-	        //std::cout<< data << std::endl;
-	    }
-
-	    MapNode(std::string n, T *d) : MapNodePtr(n), data(d){
-	        dataLength = sizeof(T);
-	    }
-	    MapNode(std::string n, T *d, size_t dL): MapNodePtr(n,dL), data(d){}
-	};
 
 public:
 	// Register a callback that is called when the program exits so we can be
 	// sure to close the port we're using.
 	// Exit with error message
-	void exitCallback();
 
-	std::map<std::string,MapNodePtr *> InputMap;
+	std::map<std::string,MapNodePtr *> * InpMap;
 	
 	DGR_framework(char* r_IP);
 	DGR_framework();
 
-	int s;
+	int * sokt;
+	bool * recvPack;
 
 
 	template<typename T>
 	void addNode(std::string n, T *d, size_t dL){
 		MapNode<T> * newNode = new MapNode<T>(n,d,dL);
-		InputMap.insert(std::pair<std::string,MapNodePtr *>( n, (MapNodePtr*)newNode ) );
+		InpMap->insert(std::pair<std::string,MapNodePtr *>( n, (MapNodePtr*)newNode ) );
 	}
 
 	template<typename T>
 	void addNode(std::string n, T *d ){
 		MapNode<T> * newNode = new MapNode<T>(n,d);
-		InputMap.insert(std::pair<std::string,MapNodePtr *>(n , (MapNodePtr*)newNode ) );
+		InpMap->insert(std::pair<std::string,MapNodePtr *>(n , (MapNodePtr*)newNode ) );
 	}
 
 	//TODO: For making new Nodes in realtime
 	// void addNode(std::string n, char *d, typeid_int dT, size_t dL ){
 	// 	InputMap.inert(std::pair<std::string,MapNodePtr *>(n,(MapNodePtr*)MapNode()));
 	// }
-private:
-	void sender();
-	void receiver();
-	
-protected: 
-	void error(const char *msg);
-
-	int milliseconds;
-	struct timespec req;
-
-	struct sockaddr_in si_me, si_other;
-	int slen;
-	bool receivedPacket;
-	int framesPassed;
-	
 
 };//end DGR_framework
+
 

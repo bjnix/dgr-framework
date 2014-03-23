@@ -32,7 +32,7 @@ rsync -ah -e ssh --exclude=.svn --checksum --partial --no-whole-file --inplace -
 
 
 # recompile for safety's sake
-#    ssh bjnix@${IVS_HOSTNAME} mkdir -p $DEST_DIR
+#    ssh bjnix@${IVS_HOSTNAME} "cd ${DEST_DIR} && make"
 	
 
 # Run the relay on ivs.research.mtu.edu. Relay broadcasts data on infiniband network.
@@ -40,9 +40,12 @@ echo "Starting relay and slaves on IVS...you may be asked for password again..."
 ssh bjnix@${IVS_HOSTNAME} "cd ${DEST_DIR} && ./DGRStartIVS-startslaves.sh" &
 sleep 5
 
+#make
 # Run master locally, tell it that the relay is running on ivs.research.mtu.edu:
+
 echo "Starting master on $HOSTNAME"
 # Tell DGRMaster where the glew library is installed:
+
 export LD_LIBRARY_PATH="/usr/local/glew/1.9.0/lib:$LD_LIBRARY_PATH"
 ./DGRMaster 141.219.28.84
 

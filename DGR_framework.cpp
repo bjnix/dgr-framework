@@ -1,74 +1,35 @@
 //DGR_framework.cpp
 #include "DGR_framework.h"
 
-//constructors
-#ifdef DGR_MASTER
-DGR_framework::DGR_framework(char* r_IP){
-   	
-	char *RELAY_IP = NULL;
-	int so_broadcast = 1;
-    RELAY_IP=r_IP;
+std::map<std::string,MapNodePtr *> InputMap;
+int s;
+int milliseconds;
+    struct timespec req;
 
-    // socket to send data to relay
-    slen = sizeof(si_other);
-    so_broadcast = 1;
+    struct sockaddr_in si_me, si_other;
+    int slen;
+    bool receivedPacket;
+    pthread_t senderThread, receiverThread;
 
-    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
-
-    setsockopt(s, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
-
-    memset((char *) &si_other, 0, sizeof(si_other));
-    si_other.sin_family = AF_INET;
-    si_other.sin_port = htons(RELAY_LISTEN_PORT);
-
-    if (inet_aton(RELAY_IP, &si_other.sin_addr) == 0) 
-    {
-        fprintf(stderr, "inet_aton() failed\n");
-        exit(1);
-    }
-
-    try{ std::thread(sender); }
-    catch(const std::system_error& e) 
-    {
-    	std::cout << "caught a system_error" <<std::endl;
-    	std::cout << "the error description is " << e.what() << '\n';
-    	exit(1);
-    }
+void exitCallback(void) 
+{
+    close(s);
 }
-#else
-DGR_framework::DGR_framework(){
-
-	receivedPacket = false;
-	framesPassed = 0;
-
-      // Socket to read data from relay
-    slen=sizeof(si_other);
-    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
-    memset((char *) &si_me, 0, sizeof(si_me));
-    si_me.sin_family = AF_INET;
-    si_me.sin_port = htons(SLAVE_LISTEN_PORT);
-    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-    if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) error("ERROR bind");
-
-      // listen for updates
-    
-    try{ std::thread(receiver); }
-    catch(const std::system_error& e) 
-    {
-    	std::cout << "caught a system_error" <<std::endl;
-    	std::cout << "the error description is " << e.what() << '\n';
-    	exit(1);
-    }
+void error(const char *msg) 
+{
+    perror(msg);
+    exit(1);
 }
-#endif
 
 #if DGR_MASTER // if MASTER:
-	// The MASTER sends all state data to the RELAY (which is run on the IVS head node)
-	// via UDP packets in an infinite loop.
-void DGR_framework::sender(void) {
+    // The MASTER sends all state data to the RELAY (which is run on the IVS head node)
+    // via UDP packets in an infinite loop.
+void sender(void) {
 
+    atexit(exitCallback);
     while (true) 
     {
+        
         //packet_buffer properties
         char * packet_buffer = new char[BUFLEN];
         int packet_length = 0;
@@ -130,9 +91,10 @@ void DGR_framework::sender(void) {
 
 #else // if SLAVE:
 // The SLAVES receive state data from teh RELAY via UDP packets and parse the data
-	
-void DGR_framework::receiver(void){
+    
+void receiver(void){
 
+    atexit(exitCallback);
     char packet_buffer[BUFLEN];
 
     MapNodePtr * cur_node;
@@ -143,7 +105,6 @@ void DGR_framework::receiver(void){
         if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,
           &slen) == -1) error("ERROR recvfrom()");
         receivedPacket = true;
-        framesPassed = 0;
         packet_cursor = 0;
 
         while( (packet_buffer[packet_cursor] > 31) && (packet_cursor < BUFLEN) )
@@ -180,8 +141,68 @@ void DGR_framework::receiver(void){
 
 #endif
 
-void DGR_framework::error(const char *msg) 
-{
-    perror(msg);
-    exit(1);
+//constructors
+#ifdef DGR_MASTER
+DGR_framework::DGR_framework(char* r_IP){
+   	
+	char *RELAY_IP = NULL;
+	int so_broadcast = 1;
+    RELAY_IP=r_IP;
+    InpMap = &InputMap;
+
+    // socket to send data to relay
+    slen = sizeof(si_other);
+    so_broadcast = 1;
+
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
+
+    setsockopt(s, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
+
+    memset((char *) &si_other, 0, sizeof(si_other));
+    si_other.sin_family = AF_INET;
+    si_other.sin_port = htons(RELAY_LISTEN_PORT);
+
+    if (inet_aton(RELAY_IP, &si_other.sin_addr) == 0) 
+    {
+        fprintf(stderr, "inet_aton() failed\n");
+        exit(1);
+    }
+
+    if (pthread_create(&senderThread, NULL, sender, NULL) != 0) 
+    {
+        perror("Can't start thread, terminating\n");
+        exit(1);
+    }
+
+
 }
+#else
+DGR_framework::DGR_framework(){
+
+	receivedPacket = false;
+    InpMap = &InputMap;
+    recvPack = &receivedPacket;
+
+      // Socket to read data from relay
+
+    slen=sizeof(si_other);
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
+    memset((char *) &si_me, 0, sizeof(si_me));
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(SLAVE_LISTEN_PORT);
+    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) error("ERROR bind");
+
+      // listen for updates
+    
+    if (pthread_create(&receiverThread, NULL, receiver, NULL) != 0) 
+    {
+        perror("Can't start thread, terminating");
+        exit(1);
+    }
+}
+#endif
+
+
+
+

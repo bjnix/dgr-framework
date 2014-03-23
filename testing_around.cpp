@@ -6,8 +6,13 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <unistd.h>
+#include <time.h>
 #include <pthread.h>
 #include <string>
 #include <typeinfo>
@@ -16,13 +21,16 @@
 
 #ifdef DGR_MASTER
 #else // if SLAVE:
-bool receivedPacket = false;
 int framesPassed = 0;
+
+
 
 // command-line parameters
 double frustum_left,frustum_right,frustum_bottom,frustum_top;
 int screen_width,screen_height;
 #endif
+
+DGR_framework * myDGR;
 
 float data1 = 0.0f;
 float data2 = 0.0f;
@@ -54,9 +62,10 @@ void display(void)
        // hasn't received any packets at all yet)
        // Assumes a 60fps framerate
     framesPassed++;
-    if (receivedPacket) 
+    if (myDGR->recvPack) 
     {
         if (framesPassed > 180) exit(EXIT_SUCCESS);
+        framesPassed = 0.0;
     } 
     else 
     {
@@ -113,7 +122,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    DGR_framework * myDGR = new DGR_framework(argv[1]);
+    myDGR = new DGR_framework(argv[1]);
 
 #else // if SLAVE:
     frustum_left = atof(argv[1]);
@@ -123,7 +132,7 @@ int main(int argc, char** argv)
     screen_width = atoi(argv[5]);
     screen_height = atoi(argv[6]);
 
-    DGR_framework * myDGR = new DGR_framework();
+    myDGR = new DGR_framework();
 #endif
     //register variables
     myDGR->addNode<float>("data1",&data1);
@@ -161,6 +170,5 @@ int main(int argc, char** argv)
       // go
 
     glutMainLoop();
-    close(myDGR->s);
     exit(EXIT_SUCCESS);
 }

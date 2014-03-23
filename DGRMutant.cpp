@@ -40,6 +40,7 @@ enum type_enum      //enumeration of data
     DGR_PTR_VOID=16,    //16 void *
     DGR_PTR_INT,        //17 int *
     DGR_PTR_DOUBLE,     //18 double *
+    
     DGR_PTR_FLOAT,      //19 float *
     DGR_PTR_CHAR,       //20 char *
     DGR_PTR_BOOL,       //21 bool *
@@ -114,7 +115,6 @@ type_enum typeid_int(T data_typeid)
     else if(typeid(float)    == typeid(data_typeid)) return DGR_FLOAT;
     else if(typeid(char)     == typeid(data_typeid)) return DGR_CHAR;
     else if(typeid(bool)     == typeid(data_typeid)) return DGR_BOOL;
-
     else if(typeid(void *)   == typeid(data_typeid)) return DGR_PTR_VOID;
     else if(typeid(int *)    == typeid(data_typeid)) return DGR_PTR_INT;
     else if(typeid(bool *)   == typeid(data_typeid)) return DGR_PTR_DOUBLE;

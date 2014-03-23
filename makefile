@@ -29,7 +29,7 @@ RLYSOURCE=DGRRelay.cpp
 
 CC=g++
 
-FLAGS= -std=c++0x -fpermissive -O2 -g -Wall
+FLAGS= -std=c++0x -fpermissive -g -Wall -O2
 
 
 all: $(SLVEXEC) $(RLYEXEC) $(MASEXEC)
