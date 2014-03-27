@@ -4,25 +4,11 @@
 
 #include <GL/glut.h>
 #include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <time.h>
-#include <pthread.h>
-#include <string>
-#include <typeinfo>
 #include "DGR_framework.h"
 
 
 #ifdef DGR_MASTER
 #else // if SLAVE:
-int framesPassed = 0;
-
 
 
 // command-line parameters
@@ -31,6 +17,10 @@ int screen_width,screen_height;
 #endif
 
 DGR_framework * myDGR;
+
+void exitCallback(void){
+    delete myDGR;
+}
 
 float data1 = 0.0f;
 float data2 = 0.0f;
@@ -62,16 +52,23 @@ void display(void)
        // hasn't received any packets at all yet)
        // Assumes a 60fps framerate
     framesPassed++;
-    if (myDGR->recvPack) 
+    if (myDGR->recvPack[0]) 
     {
-        if (framesPassed > 180) exit(EXIT_SUCCESS);
-        framesPassed = 0.0;
+       
+        if (framesPassed > 180) {
+            //printf("DGR has revieved a packet and is timing out\n");
+            exit(EXIT_SUCCESS);
+        }
     } 
     else 
     {
-        if (framesPassed > 900) exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
+        
+        if (framesPassed > 900){
+        //printf("DGR has not revieved a packet and is timing out\n");
+        exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
                                                 // you can increase this value so the slaves don't prematurely
                                                 // shut themselves off.
+        }
     }
 
 #endif

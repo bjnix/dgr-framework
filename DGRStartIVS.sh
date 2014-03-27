@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e # exit script if any command returns a non-zero exit code.
+# exit script if any command returns a non-zero exit code.
 
 # The hostname that we expect to be running on:
 EXPECT_HOSTNAME="ccsr.ee.mtu.edu"
@@ -32,15 +32,15 @@ rsync -ah -e ssh --exclude=.svn --checksum --partial --no-whole-file --inplace -
 
 
 # recompile for safety's sake
-#    ssh bjnix@${IVS_HOSTNAME} "cd ${DEST_DIR} && make"
+    ssh bjnix@${IVS_HOSTNAME} "cd ${DEST_DIR} && make"
 	
-
+make
 # Run the relay on ivs.research.mtu.edu. Relay broadcasts data on infiniband network.
 echo "Starting relay and slaves on IVS...you may be asked for password again..."
 ssh bjnix@${IVS_HOSTNAME} "cd ${DEST_DIR} && ./DGRStartIVS-startslaves.sh" &
 sleep 5
 
-#make
+
 # Run master locally, tell it that the relay is running on ivs.research.mtu.edu:
 
 echo "Starting master on $HOSTNAME"
@@ -48,4 +48,8 @@ echo "Starting master on $HOSTNAME"
 
 export LD_LIBRARY_PATH="/usr/local/glew/1.9.0/lib:$LD_LIBRARY_PATH"
 ./DGRMaster 141.219.28.84
+#echo "I will kill all the slaves!:"
+#echo "Press Ctrl+C to cancel or any other key to continue."
+#read
+#./killSlaves.sh
 

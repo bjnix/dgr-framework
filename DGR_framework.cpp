@@ -1,37 +1,39 @@
 //DGR_framework.cpp
 #include "DGR_framework.h"
 
+int framesPassed = 0;
+
 std::map<std::string,MapNodePtr *> InputMap;
 int s;
 int milliseconds;
-    struct timespec req;
+struct timespec req;
 
-    struct sockaddr_in si_me, si_other;
-    int slen;
-    bool receivedPacket;
-    pthread_t senderThread, receiverThread;
+struct sockaddr_in si_me, si_other;
+int slen;
+bool receivedPacket;
+pthread_t senderThread, receiverThread;
 
-void exitCallback(void) 
-{
-    close(s);
-}
 void error(const char *msg) 
 {
     perror(msg);
     exit(1);
 }
 
-#if DGR_MASTER // if MASTER:
-    // The MASTER sends all state data to the RELAY (which is run on the IVS head node)
-    // via UDP packets in an infinite loop.
+
 void sender(void) {
 
-    atexit(exitCallback);
+    int packet_length;
+    unsigned char packet_counter;
+    //current node properties
+    char * node_buf;
+    int node_length, node_counter;
+    bool first_node, last_node;
+
     while (true) 
     {
         
         //packet_buffer properties
-        char * packet_buffer = new char[BUFLEN];
+        char packet_buffer[BUFLEN];
         int packet_length = 0;
         unsigned char packet_counter = 0;
         //current node properties
@@ -43,7 +45,7 @@ void sender(void) {
         bool last_node = false;
 
 
-        for(auto it = InputMap.begin();it!= InputMap.end();it++)
+        for(std::map<std::string,MapNodePtr *>::iterator it = InputMap.begin();it!= InputMap.end();++it)
         {
 
             node_length = 0;
@@ -89,22 +91,22 @@ void sender(void) {
     }
 }
 
-#else // if SLAVE:
 // The SLAVES receive state data from teh RELAY via UDP packets and parse the data
     
 void receiver(void){
 
-    atexit(exitCallback);
     char packet_buffer[BUFLEN];
 
     MapNodePtr * cur_node;
     std::string node_name;
     int node_data_length, packet_cursor;
 
+
     while (true){
         if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,
           &slen) == -1) error("ERROR recvfrom()");
         receivedPacket = true;
+    	framesPassed = 0;
         packet_cursor = 0;
 
         while( (packet_buffer[packet_cursor] > 31) && (packet_cursor < BUFLEN) )
@@ -139,10 +141,9 @@ void receiver(void){
     }
 }
 
-#endif
 
 //constructors
-#ifdef DGR_MASTER
+
 DGR_framework::DGR_framework(char* r_IP){
    	
 	char *RELAY_IP = NULL;
@@ -176,7 +177,7 @@ DGR_framework::DGR_framework(char* r_IP){
 
 
 }
-#else
+
 DGR_framework::DGR_framework(){
 
 	receivedPacket = false;
@@ -201,8 +202,17 @@ DGR_framework::DGR_framework(){
         exit(1);
     }
 }
-#endif
 
+DGR_framework::~DGR_framework(){
+    close(s);
+}
 
+// void DGR_framework::exitCallback(void) 
+// {
+// 	printf("closing socket\n");
+// 	    close(s);
+// 	printf("socket closed\n");
+	
+// }
 
 

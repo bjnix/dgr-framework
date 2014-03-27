@@ -24,12 +24,12 @@ endif
 ALL_INC=${GLEW_INC}
 ALL_LIB=${GLEW_LIB} -lglut -lX11 -lGL -lGLU -lstdc++ -lc -pthread 
 
-MUTSOURCE=DGRMutant.cpp
+MUTSOURCE=testing_around.cpp DGR_framework.cpp
 RLYSOURCE=DGRRelay.cpp
 
 CC=g++
 
-FLAGS= -std=c++0x -fpermissive -g -Wall -O2
+FLAGS=-fpermissive -g -Wall -O2
 
 
 all: $(SLVEXEC) $(RLYEXEC) $(MASEXEC)
