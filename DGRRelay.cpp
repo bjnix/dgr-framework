@@ -15,7 +15,6 @@
 #include <math.h>
 #include <pthread.h>
 #include <string>
-#include <sstream>
 #include <vector>
 
 #define RELAY_LISTEN_PORT 25885
@@ -24,8 +23,6 @@
 char *RELAY_OUT_IP = NULL;
 
 
-using namespace std;
-
 // network data
 int s_R, s_S, milliseconds;
 struct timespec req;
@@ -33,31 +30,15 @@ pthread_t receiverThread;
 int so_broadcast = 1;
 
 struct sockaddr_in si_me_R, si_other_R;
-int slen_R;
+socklen_t slen_R;
 struct sockaddr_in si_me_S, si_other_S;
-int slen_S;
+socklen_t slen_S;
 
 bool receivedPacket = false;
 int framesPassed = 0;
 
 // state data -- ADD YOUR STATE PARAMETERS THAT NEED TO BE PASSED FROM MASTER TO SLAVE HERE.
 float rotation;
-
-// Helper function for splitting strings along a delimiter (such as ~)
-vector<string> &split(const string &s, char delim, vector<string> &elems) {
-  stringstream ss(s);
-  string item;
-  while (getline(ss, item, delim)) {
-    elems.push_back(item);
-  }
-  return elems;
-}
-
-// Helper function for splitting strings along a delimiter (such as ~)
-vector<string> split(const string &s, char delim) {
-  vector<string> elems;
-  return split(s, delim, elems);
-}
 
 // Exit with error message
 void error(const char *msg) {
@@ -78,9 +59,9 @@ void exitCallback() {
 
 // This function receives incoming packets, repackages them, and then forwards them
 // on the network for consumption by the slaves. It does this in an infinite loop.
-void receiver() {
+void * receiver(void *) {
   char buf[BUFLEN];
-  vector<string> splits;
+  std::vector<std::string> splits;
   while (true) {
     // receive data
     if (recvfrom(s_R, buf, BUFLEN, 0, (struct sockaddr*)&si_other_R,
@@ -113,10 +94,11 @@ int main(int argc, char **argv) {
   si_me_R.sin_family = AF_INET;
   si_me_R.sin_port = htons(RELAY_LISTEN_PORT);
   si_me_R.sin_addr.s_addr = htonl(INADDR_ANY);
-  if (bind(s_R, (struct sockaddr*)&si_me_R, sizeof(si_me_R)) == -1) error("ERROR bind");
+  int _bind_result = bind(s_R, (struct sockaddr*)&si_me_R, sizeof(si_me_R));
+  if ( _bind_result == -1) error("ERROR bind");
 
   // listen for updates
-  if (pthread_create(&receiverThread, NULL, receiver, NULL) != 0) {
+  if (pthread_create(&receiverThread, NULL, &receiver, NULL) != 0) {
     perror("Can't start thread, terminating");
     return 1;
   }

@@ -2,7 +2,7 @@
 // James Walker   jwwalker at mtu dot edu
 // Scott A. Kuhl  kuhl at mtu dot edu
 
-#include <GL/glut.h>
+#include <GLUT/glut.h>
 #include <math.h>
 #include "DGR_framework.h"
 
@@ -51,25 +51,25 @@ void display(void)
        // any packets within a few seconds (it gives itself longer if it
        // hasn't received any packets at all yet)
        // Assumes a 60fps framerate
-    framesPassed++;
-    if (myDGR->recvPack[0]) 
-    {
+    // framesPassed++;
+    // if (myDGR->recvPack[0]) 
+    // {
        
-        if (framesPassed > 180) {
-            //printf("DGR has revieved a packet and is timing out\n");
-            exit(EXIT_SUCCESS);
-        }
-    } 
-    else 
-    {
+    //     if (framesPassed > 180) {
+    //         //printf("DGR has revieved a packet and is timing out\n");
+    //         exit(EXIT_SUCCESS);
+    //     }
+    // } 
+    // else 
+    // {
         
-        if (framesPassed > 900){
-        //printf("DGR has not revieved a packet and is timing out\n");
-        exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
-                                                // you can increase this value so the slaves don't prematurely
-                                                // shut themselves off.
-        }
-    }
+    //     if (framesPassed > 900){
+    //     //printf("DGR has not revieved a packet and is timing out\n");
+    //     exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
+    //                                             // you can increase this value so the slaves don't prematurely
+    //                                             // shut themselves off.
+    //     }
+    // }
 
 #endif
 
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
 
 #ifdef DGR_MASTER
-    glutInitWindowSize((1920*6)/8, (1080*4)/8);
+    glutInitWindowSize((1920*6)/10, (1080*4)/10);
     glutInitWindowPosition(0, 0);
     glutCreateWindow(argv[0]);
         // This simple example doesn't use input callbacks, but the lines commented out

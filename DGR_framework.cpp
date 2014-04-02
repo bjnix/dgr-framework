@@ -1,4 +1,7 @@
 //DGR_framework.cpp
+#include <pthread.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "DGR_framework.h"
 
 int framesPassed = 0;
@@ -9,9 +12,10 @@ int milliseconds;
 struct timespec req;
 
 struct sockaddr_in si_me, si_other;
-int slen;
+socklen_t slen;
 bool receivedPacket;
 pthread_t senderThread, receiverThread;
+char * packet_buffer;
 
 void error(const char *msg) 
 {
@@ -20,7 +24,7 @@ void error(const char *msg)
 }
 
 
-void sender(void) {
+void * sender(void * data) {
 
     int packet_length;
     unsigned char packet_counter;
@@ -28,12 +32,12 @@ void sender(void) {
     char * node_buf;
     int node_length, node_counter;
     bool first_node, last_node;
+    packet_buffer = new char[BUFLEN];
 
     while (true) 
     {
         
         //packet_buffer properties
-        char packet_buffer[BUFLEN];
         int packet_length = 0;
         unsigned char packet_counter = 0;
         //current node properties
@@ -69,7 +73,8 @@ void sender(void) {
             //message buffer full. send and start a new one.
             if( (packet_length + node_length) > BUFLEN)
             {
-                if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+                if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) 
+                    error ("ERROR sendto()");
                 packet_counter ++;
                 packet_length = 0;
                 first_node = true;
@@ -85,7 +90,8 @@ void sender(void) {
             }
 
         }
-        if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) error ("ERROR sendto()");
+        if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) 
+            error ("ERROR sendto()");
 
         usleep(32000);
     }
@@ -93,9 +99,9 @@ void sender(void) {
 
 // The SLAVES receive state data from teh RELAY via UDP packets and parse the data
     
-void receiver(void){
+void * receiver(void * data){
 
-    char packet_buffer[BUFLEN];
+    packet_buffer = new char[BUFLEN];
 
     MapNodePtr * cur_node;
     std::string node_name;
@@ -103,8 +109,8 @@ void receiver(void){
 
 
     while (true){
-        if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,
-          &slen) == -1) error("ERROR recvfrom()");
+        if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr *)&si_other, &slen) == -1) 
+            error("ERROR recvfrom()");
         receivedPacket = true;
     	framesPassed = 0;
         packet_cursor = 0;
@@ -155,7 +161,8 @@ DGR_framework::DGR_framework(char* r_IP){
     slen = sizeof(si_other);
     so_broadcast = 1;
 
-    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
+        error("ERROR socket");
 
     setsockopt(s, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
 
@@ -169,7 +176,7 @@ DGR_framework::DGR_framework(char* r_IP){
         exit(1);
     }
 
-    if (pthread_create(&senderThread, NULL, sender, NULL) != 0) 
+    if (pthread_create(&senderThread, NULL, &sender, NULL) != 0) 
     {
         perror("Can't start thread, terminating\n");
         exit(1);
@@ -187,16 +194,18 @@ DGR_framework::DGR_framework(){
       // Socket to read data from relay
 
     slen=sizeof(si_other);
-    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
+        error("ERROR socket");
     memset((char *) &si_me, 0, sizeof(si_me));
     si_me.sin_family = AF_INET;
     si_me.sin_port = htons(SLAVE_LISTEN_PORT);
     si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-    if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) error("ERROR bind");
+    if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) 
+        error("ERROR bind");
 
       // listen for updates
     
-    if (pthread_create(&receiverThread, NULL, receiver, NULL) != 0) 
+    if (pthread_create(&receiverThread, NULL, &receiver, NULL) != 0) 
     {
         perror("Can't start thread, terminating");
         exit(1);
