@@ -67,6 +67,7 @@ class DGR_framework{
 
 
 private:
+	void slaveInit();
 
 	// enum type_enum{     //enumeration of data 
 	
@@ -179,6 +180,7 @@ public:
 	std::map<std::string,MapNodePtr *> * InpMap;
 	
 	DGR_framework(char* r_IP);
+	DGR_framework(int s_listen_port);
 	DGR_framework();
 	~DGR_framework();
 	void exitCallback();

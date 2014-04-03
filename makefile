@@ -1,3 +1,42 @@
+
+UNAME := $(shell uname)
+
+#+_+_+_+_+_+_+_+_+_+_+_+_+_
+ifeq ($(UNAME), Linux)
+
+ifeq "$(HOSTNAME)" "ivs.research.mtu.edu"
+
+GLEW_INC=-I/opt/viz/include
+GLEW_LIB=-L/opt/viz/lib -lGLEW
+
+endif #end IVS
+
+# We statically link GLEW on CCSR with our binaries so when we
+# transfer the binaries to the IVS tiles, glew works properly. CCSR
+# and IVS have different glew versions installed in different places
+# with different library filenames.
+ifeq "$(HOSTNAME)" "ccsr.ee.mtu.edu"
+
+GLEW_INC=-I/usr/local/glew/1.9.0/include
+GLEW_LIB=-L/usr/local/glew/1.9.0/lib -Wl,-Bstatic -lGLEW -Wl,-Bdynamic
+
+endif #end CCSR
+
+GLEW_LIB=-lGLEW
+
+OS_LIBS=${GLEW_LIB} -lglut -lGL -lGLU -lX11
+
+endif #end Linux
+#--------------------------
+
+#+_+_+_+_+_+_+_+_+_+_+_+_+_
+ifeq ($(UNAME), Darwin)
+
+OS_LIBS=-framework GLUT -framework OpenGL -framework Cocoa -L/usr/X11/lib
+
+endif #end Darwin
+#--------------------------
+
 MASEXEC=DGRMaster
 SLVEXEC=DGRSlave
 RLYEXEC=DGRRelay
@@ -7,29 +46,17 @@ HEADERS=
 GLEW_INC=
 GLEW_LIB=-lGLEW
 
-ifeq "$(HOSTNAME)" "ivs.research.mtu.edu"
-GLEW_INC=-I/opt/viz/include
-GLEW_LIB=-L/opt/viz/lib -lGLEW
-endif
 
-# We statically link GLEW on CCSR with our binaries so when we
-# transfer the binaries to the IVS tiles, glew works properly. CCSR
-# and IVS have different glew versions installed in different places
-# with different library filenames.
-ifeq "$(HOSTNAME)" "ccsr.ee.mtu.edu"
-GLEW_INC=-I/usr/local/glew/1.9.0/include
-GLEW_LIB=-L/usr/local/glew/1.9.0/lib -Wl,-Bstatic -lGLEW -Wl,-Bdynamic
-endif
 
 ALL_INC=${GLEW_INC}
-ALL_LIB=${GLEW_LIB} -lglut -lX11 -lGL -lGLU -lstdc++ -lc -pthread 
+ALL_LIB= -lstdc++ -lc -pthread ${OS_LIBS}
 
 MUTSOURCE=testing_around.cpp DGR_framework.cpp
 RLYSOURCE=DGRRelay.cpp
 
 CC=g++
 
-FLAGS=-fpermissive -g -Wall -O2
+FLAGS=-std=c++0x -fpermissive -g -Wall -O2 
 
 
 all: $(SLVEXEC) $(RLYEXEC) $(MASEXEC)
