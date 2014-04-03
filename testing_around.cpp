@@ -26,6 +26,7 @@ float data1 = 0.0f;
 float data2 = 0.0f;
 float data3 = 0.0f;
 float data4 = 0.0f;
+float data5 = 0.0f;
 
 void init(void) 
 {
@@ -42,10 +43,7 @@ void display(void)
 #ifdef DGR_MASTER   // All code that updates state variables should be exclusive to the MASTER.
                     // Forbidding the SLAVES from updating state variables and only getting them
                     // from the MASTER is what guarantees that the processes all stay synchronized.
-    data1 += 1.0f;
-    data2 += 2.0f;
-    data3 += 5.0f;
-    data4 += 0.01f;
+   
 
 #else  // The slave automatically shuts itself off if it hasn't received
        // any packets within a few seconds (it gives itself longer if it
@@ -71,7 +69,7 @@ void display(void)
     //     }
     // }
 
-#endif
+
 
       // Display code common to both the MASTER and SLAVE (except the frustum call)
       // This simple example just displays a wireframe cube and slowly rotates it.
@@ -84,27 +82,26 @@ void display(void)
     float y = 0;
     float z = 1.5;
 
-#ifdef DGR_MASTER
-    glFrustum (-1.03*3-x, 1.03*3-x, .28-z, 2.6-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
-#else
     glFrustum (frustum_left-x, frustum_right-x, frustum_bottom-z, frustum_top-z, 3.9-y, 5000); // edit the 0.1,5000 if you want to change the near/far clipping distance
-#endif
+
     glMatrixMode (GL_MODELVIEW);
     gluLookAt (0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
     glTranslatef(0,0,-30);
     glScalef (8.0, 8.0, 8.0);
     glPushMatrix();
     glColor3ub(data2,data3,0);
-    glRotatef(data1, 0.0f, 1.0f, 0.0f);
+    glRotatef(data1, data2, data3, data5);
     glutWireCube (1.0);
     glPopMatrix();
+    glPushMatrix();
     glColor3ub(data2,data3,0);
     glRotatef(data1, 0.0f, 1.0f, 0.0f);
     glutWireCube(data4);
-
+    glPopMatrix();
 
     glutSwapBuffers();
     glutPostRedisplay();
+    #endif
 }
 
 
@@ -128,8 +125,8 @@ int main(int argc, char** argv)
     frustum_top = atof(argv[4]);
     screen_width = atoi(argv[5]);
     screen_height = atoi(argv[6]);
-
-    myDGR = new DGR_framework();
+    if(argc == 8){ myDGR = new DGR_framework( atoi(argv[7]) ); }
+    else{ myDGR = new DGR_framework(); }
 #endif
     //register variables
     myDGR->addNode<float>("data1",&data1);
@@ -139,25 +136,24 @@ int main(int argc, char** argv)
 
 
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
+    
 
 #ifdef DGR_MASTER
-    glutInitWindowSize((1920*6)/10, (1080*4)/10);
-    glutInitWindowPosition(0, 0);
-    glutCreateWindow(argv[0]);
-        // This simple example doesn't use input callbacks, but the lines commented out
-        // below demonstrate that any input callbacks you use should be exclusive to the
-        // MASTER and not used by the SLAVES.
-        //glutKeyboardFunc(keyboard);
-        //glutMouseFunc(processMouse);
-        //glutMotionFunc(mousePressMove);
-        //glutPassiveMotionFunc(mouseMove);
+    while(true){
+        data1 += 1.0f;
+        data2 += 2.0f;
+        data3 += 5.0f;
+        data4 += 0.01f;
+        data5 += 0.05f;
+        usleep(32000);
+    }
 #else
+    glutInit(&argc, argv);
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize (screen_width, screen_height); 
     glutInitWindowPosition (0, 0);
     glutCreateWindow ("DGR Slave Node");
-#endif
+
 
     init();
     glutDisplayFunc(display);
@@ -166,6 +162,9 @@ int main(int argc, char** argv)
 
       // go
 
+
     glutMainLoop();
+
     exit(EXIT_SUCCESS);
+    #endif
 }

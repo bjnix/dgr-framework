@@ -6,6 +6,8 @@
 
 int framesPassed = 0;
 
+int slave_listen_port = SLAVE_LISTEN_PORT;
+
 std::map<std::string,MapNodePtr *> InputMap;
 int s;
 int milliseconds;
@@ -163,7 +165,7 @@ DGR_framework::DGR_framework(char* r_IP){
 
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
         error("ERROR socket");
-
+    printf("--%d--\n",s);
     setsockopt(s, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
 
     memset((char *) &si_other, 0, sizeof(si_other));
@@ -184,10 +186,25 @@ DGR_framework::DGR_framework(char* r_IP){
 
 
 }
+DGR_framework::DGR_framework(int s_listen_port){
+    slave_listen_port = s_listen_port;
+    slaveInit();
+
+}
 
 DGR_framework::DGR_framework(){
+    slave_listen_port = SLAVE_LISTEN_PORT;
+    slaveInit();
+}
 
-	receivedPacket = false;
+
+
+DGR_framework::~DGR_framework(){
+    close(s);
+}
+
+void DGR_framework::slaveInit(){
+    receivedPacket = false;
     InpMap = &InputMap;
     recvPack = &receivedPacket;
 
@@ -196,9 +213,10 @@ DGR_framework::DGR_framework(){
     slen=sizeof(si_other);
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
         error("ERROR socket");
+    printf("--%i--%d--\n",slave_listen_port,s);
     memset((char *) &si_me, 0, sizeof(si_me));
     si_me.sin_family = AF_INET;
-    si_me.sin_port = htons(SLAVE_LISTEN_PORT);
+    si_me.sin_port = htons(slave_listen_port);
     si_me.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) 
         error("ERROR bind");
@@ -211,11 +229,6 @@ DGR_framework::DGR_framework(){
         exit(1);
     }
 }
-
-DGR_framework::~DGR_framework(){
-    close(s);
-}
-
 // void DGR_framework::exitCallback(void) 
 // {
 // 	printf("closing socket\n");
