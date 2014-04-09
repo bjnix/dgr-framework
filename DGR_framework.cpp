@@ -1,12 +1,10 @@
 //DGR_framework.cpp
-#include <pthread.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include "DGR_framework.h"
 
-int framesPassed = 0;
-
 int slave_listen_port = SLAVE_LISTEN_PORT;
+
+int framesPassed = 0;
+bool receivedPacket = false;
 
 std::map<std::string,MapNodePtr *> InputMap;
 int s;
@@ -14,10 +12,9 @@ int milliseconds;
 struct timespec req;
 
 struct sockaddr_in si_me, si_other;
-socklen_t slen;
-bool receivedPacket;
+int slen;
 pthread_t senderThread, receiverThread;
-char * packet_buffer;
+
 
 void error(const char *msg) 
 {
@@ -27,35 +24,32 @@ void error(const char *msg)
 
 
 void * sender(void * data) {
-
+    //packet properties
     int packet_length;
     unsigned char packet_counter;
     //current node properties
     char * node_buf;
-    int node_length, node_counter;
-    bool first_node, last_node;
-    packet_buffer = new char[BUFLEN];
+    int node_length;
+    unsigned char node_counter;
+    //buffer
+    char * packet_buffer= new char[BUFLEN];
+    
 
     while (true) 
     {
         
         //packet_buffer properties
-        int packet_length = 0;
-        unsigned char packet_counter = 0;
+        packet_length = 2;
+        packet_counter = 0;
         //current node properties
-        char * node_buf;
-        int node_length = 0;
-        int node_counter = 0;
+        node_length = 0;
+        node_counter = 0;
 
-        bool first_node = true;
-        bool last_node = false;
-
-
-        for(std::map<std::string,MapNodePtr *>::iterator it = InputMap.begin();it!= InputMap.end();++it)
+        for(std::map<std::string,MapNodePtr *>::iterator it = InputMap.begin();it != InputMap.end();++it)
         {
+        
 
             node_length = 0;
-            //if(std::next(it) == InputMap.end()){ last_node = true;}
 
             MapNodePtr * cur_node = it->second;
             std::string cur_name = cur_node->name;
@@ -64,7 +58,6 @@ void * sender(void * data) {
 
             node_length = cur_name.length() + sizeof(char) + cur_data_length;
 
-            // if(first_node || last_node) node_length += sizeof(packet_counter);
             node_buf = new char[node_length];
 
             //prepare node buffer
@@ -75,11 +68,12 @@ void * sender(void * data) {
             //message buffer full. send and start a new one.
             if( (packet_length + node_length) > BUFLEN)
             {
+                printf("!!! packet split !!!\n");
                 if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) 
                     error ("ERROR sendto()");
                 packet_counter ++;
-                packet_length = 0;
-                first_node = true;
+                packet_length = 2;
+                node_counter = 0;
                 it--;
 
             }
@@ -87,39 +81,60 @@ void * sender(void * data) {
             { // add node to packet buffer
                 memcpy(packet_buffer + packet_length, node_buf, node_length);
                 packet_length += node_length;
-                first_node = false;
                 node_counter ++;
             }
 
         }
-        if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) 
+        //prepend some useful data
+        packet_buffer[0] = packet_counter;
+        packet_buffer[1] = node_counter;
+        
+        if (sendto(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,slen) == -1) 
             error ("ERROR sendto()");
 
-        usleep(32000);
+        usleep(32000); /**< 30 fps */
     }
+    return 0;
 }
 
 // The SLAVES receive state data from teh RELAY via UDP packets and parse the data
+
     
 void * receiver(void * data){
 
-    packet_buffer = new char[BUFLEN];
+    
 
     MapNodePtr * cur_node;
     std::string node_name;
     int node_data_length, packet_cursor;
-
+    unsigned char node_counter,packet_counter;
+    char * packet_buffer = new char[BUFLEN];
 
     while (true){
-        if (recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr *)&si_other, &slen) == -1) 
-            error("ERROR recvfrom()");
+        
+        if(recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr *)&si_other,
+            &slen) == -1) error("ERROR recvfrom()");
+        
+        /*//print buffer contents
+        
+        std::cout << "|";
+        for(int i = 0; i < BUFLEN; i++){
+            std::cout << packet_buffer[i] <<"|";
+        }
+        std::cout << std::endl << std::endl;
+        */
+        
+        
         receivedPacket = true;
-    	framesPassed = 0;
-        packet_cursor = 0;
+        framesPassed = 0;
+        packet_cursor = 2;
 
-        while( (packet_buffer[packet_cursor] > 31) && (packet_cursor < BUFLEN) )
+        packet_counter = packet_buffer[0];
+        node_counter = packet_buffer[1];
+        
+
+        while( (node_counter > 0) && (packet_cursor < BUFLEN) )
         {
-
                         //extract name
             node_name = "";
             for(int i = packet_cursor; i < BUFLEN; i++) 
@@ -140,32 +155,57 @@ void * receiver(void * data){
             node_data_length = cur_node->dataLength;
 
             char * node_data = new char[node_data_length];
-            node_data = &packet_buffer[packet_cursor];
+            node_data = packet_buffer + packet_cursor;
                         //set data
             cur_node->setData(node_data);
             packet_cursor += node_data_length;
-                        //print data        
+            node_counter --;
         }
     }
 }
 
+void * slave_auto_kill(void * data){
+
+    while(true){
+        framesPassed++;
+        //printf("frames passed: %d\n",framesPassed);
+        if (receivedPacket) 
+        {
+           //ssprintf("has received Packet\n");
+            if (framesPassed > 180) {
+                //printf("DGR has revieved a packet and is timing out\n");
+                exit(EXIT_SUCCESS);
+            }
+        } 
+        else 
+        {
+            //printf("has not received Packet\n");
+            if (framesPassed > 900){
+            //printf("DGR has not revieved a packet and is timing out\n");
+            exit(EXIT_SUCCESS); // If your program takes a very long time to initialize,
+                                                    // you can increase this value so the slaves don't prematurely
+                                                    // shut themselves off.
+            }
+        }
+        usleep(32000); /**< 30 fps */
+    }
+}
 
 //constructors
 
 DGR_framework::DGR_framework(char* r_IP){
    	
+    InpMap = &InputMap;
 	char *RELAY_IP = NULL;
 	int so_broadcast = 1;
     RELAY_IP=r_IP;
-    InpMap = &InputMap;
 
-    // socket to send data to relay
     slen = sizeof(si_other);
     so_broadcast = 1;
 
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
         error("ERROR socket");
-    printf("--%d--\n",s);
+    
     setsockopt(s, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
 
     memset((char *) &si_other, 0, sizeof(si_other));
@@ -186,34 +226,32 @@ DGR_framework::DGR_framework(char* r_IP){
 
 
 }
+
 DGR_framework::DGR_framework(int s_listen_port){
+    
     slave_listen_port = s_listen_port;
     slaveInit();
 
 }
 
 DGR_framework::DGR_framework(){
+    
     slave_listen_port = SLAVE_LISTEN_PORT;
     slaveInit();
 }
-
-
 
 DGR_framework::~DGR_framework(){
     close(s);
 }
 
 void DGR_framework::slaveInit(){
-    receivedPacket = false;
     InpMap = &InputMap;
-    recvPack = &receivedPacket;
+    
 
-      // Socket to read data from relay
-
-    slen=sizeof(si_other);
+    slen = sizeof(si_other);
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
         error("ERROR socket");
-    printf("--%i--%d--\n",slave_listen_port,s);
+    
     memset((char *) &si_me, 0, sizeof(si_me));
     si_me.sin_family = AF_INET;
     si_me.sin_port = htons(slave_listen_port);
@@ -221,20 +259,21 @@ void DGR_framework::slaveInit(){
     if (bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1) 
         error("ERROR bind");
 
-      // listen for updates
-    
+    // kill slave when necessary
+    if (pthread_create(&receiverThread, NULL, &slave_auto_kill, NULL) != 0) 
+    {
+        perror("Can't start thread, terminating");
+        exit(1);
+    }
+
+    // listen for updates
     if (pthread_create(&receiverThread, NULL, &receiver, NULL) != 0) 
     {
         perror("Can't start thread, terminating");
         exit(1);
     }
+
 }
-// void DGR_framework::exitCallback(void) 
-// {
-// 	printf("closing socket\n");
-// 	    close(s);
-// 	printf("socket closed\n");
-	
-// }
+
 
 

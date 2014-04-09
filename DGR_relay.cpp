@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
       slen_S=sizeof(_si_other_S);
 
       if ((_s_S=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket");
-      printf("%i--%s--%d--\n",i,argv[i],_s_S);
+      //printf("%i--%s--%d--\n",i,argv[i],_s_S);
 
       setsockopt(_s_S, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
 

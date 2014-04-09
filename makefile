@@ -1,7 +1,7 @@
 
 UNAME := $(shell uname)
 
-#+_+_+_+_+_+_+_+_+_+_+_+_+_
+#--------------------------
 ifeq ($(UNAME), Linux)
 
 ifeq "$(HOSTNAME)" "ivs.research.mtu.edu"
@@ -29,7 +29,6 @@ OS_LIBS=${GLEW_LIB} -lglut -lGL -lGLU -lX11
 endif #end Linux
 #--------------------------
 
-#+_+_+_+_+_+_+_+_+_+_+_+_+_
 ifeq ($(UNAME), Darwin)
 
 OS_LIBS=-framework GLUT -framework OpenGL -framework Cocoa -L/usr/X11/lib
@@ -52,7 +51,7 @@ ALL_INC=${GLEW_INC}
 ALL_LIB= -lstdc++ -lc -pthread ${OS_LIBS}
 
 MUTSOURCE=testing_around.cpp DGR_framework.cpp
-RLYSOURCE=DGRRelay.cpp
+RLYSOURCE=DGR_relay.cpp
 
 CC=g++
 
