@@ -26,28 +26,28 @@ The basic premise here is a master - slave relationship. The specifics of how th
 
 1) Having a master node that talks to a relay on a cluster head
 
-                     {slave}
-                     {slave}
-{Master}--->{relay}--{slave}
-                     {slave}
-                     {slave}
+                                                               {slave}
+                                                               {slave}
+                                          {Master}--->{relay}--{slave}
+                                                               {slave}
+                                                               {slave}
 
 2) Running directly off of the cluster head (the relay functionality is moved into the master code)
 
-                  {slave}
-                  {slave}
-{master/relay}----{slave}
-                  {slave}
-                  {slave}
+                                                               {slave}
+                                                               {slave}
+                                             {master/relay}----{slave}
+                                                               {slave}
+                                                               {slave}
         
 and finally, a purely local environment allows us to recreate the above situations for local testing purposes.
 
-          master
-{relay,slave,slave,slave,...}
+                                                    master
+                                          {relay,slave,slave,slave,...}
 
 or
-          master/relay
-{slave,slave,slave,slave,...}
+                                                    master/relay
+                                          {slave,slave,slave,slave,...}
 
 
 
