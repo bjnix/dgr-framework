@@ -127,12 +127,13 @@ SUPPORT
 If you have questions, comments, or need assistance with this demo or
 using the demo to distribute rendering in your own programs, please
 contact
-         bjnix at mtu dot edu
+
+		bjnix at mtu dot edu
 
             and/or
 
-         jwwalker at mtu dot edu
+        jwwalker at mtu dot edu
 
             and/or
 
-         kuhl at mtu dot edu
+        kuhl at mtu dot edu
