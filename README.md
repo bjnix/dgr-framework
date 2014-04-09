@@ -44,9 +44,8 @@ and finally, a purely local environment allows us to recreate the above situatio
 
                                                     master
                                           {relay,slave,slave,slave,...}
-
-or
-                                                    master/relay
+                                                      or
+                                                 master/relay
                                           {slave,slave,slave,slave,...}
 
 
@@ -79,7 +78,7 @@ This demo illustrates how to accomplish distributed rendering on a graphics
 cluster using only UDP packets, without relying on libraries such as
 Chromium. You can use this as an example to add this functionality to your
 own programs. Here is a brief explanation of how it works:
--You must modify include DGR___framework" and have "DGR_framework.cpp" which contains the code for both
+-You must include "DGR_framework" in the files that you wish to use DGR in as well as have "DGR_framework.cpp" in the same area as your source code as well as in your makefile. 
  the master and the slave computer. Look carefully at the preprocessor
  directives in the code. The can come in different varieties such as
 
