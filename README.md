@@ -153,8 +153,8 @@ char * MapNode<Player>::getDataString(char* data_array){
     memcpy(data_array, float_array, dataLength);
 }
 ````
-Next, reverse the process and _parse_ the data back into the object from the array that you just made:
-````cpp
+ Next, reverse the process and _parse_ the data back into the object from the array that you just made:
+ ````cpp
 template<>
 void MapNode<Player>::setData(char * data_array){
   float float_array[24];
