@@ -1,5 +1,6 @@
 //DGR_framework.h
-
+#ifndef _DGR_FRAMEWORK_H
+#define _DGR_FRAMEWORK_H
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -207,4 +208,4 @@ public:
 
 };//end DGR_framework Class
 
-
+#endif

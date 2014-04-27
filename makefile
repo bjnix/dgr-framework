@@ -1,6 +1,7 @@
 
 UNAME := $(shell uname)
 
+GLEW_LIB=-lGLEW
 #--------------------------
 ifeq ($(UNAME), Linux)
 
@@ -22,7 +23,6 @@ GLEW_LIB=-L/usr/local/glew/1.9.0/lib -Wl,-Bstatic -lGLEW -Wl,-Bdynamic
 
 endif #end CCSR
 
-GLEW_LIB=-lGLEW
 
 OS_LIBS=${GLEW_LIB} -lglut -lGL -lGLU -lX11
 
@@ -43,7 +43,6 @@ RLYEXEC=DGRRelay
 HEADERS=
 
 GLEW_INC=
-GLEW_LIB=-lGLEW
 
 
 
