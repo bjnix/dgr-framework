@@ -1,4 +1,5 @@
 // Authors:
+// Brent J. Nix   bjnix at mtu dot edu
 // James Walker   jwwalker at mtu dot edu
 // Scott A. Kuhl  kuhl at mtu dot edu
 

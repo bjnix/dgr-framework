@@ -44,82 +44,152 @@ and finally, a purely local environment allows us to recreate the above situatio
 
                                                     master
                                           {relay,slave,slave,slave,...}
+
                                                       or
+
                                                  master/relay
                                           {slave,slave,slave,slave,...}
 
 
 
 
-1) From the IVS lab (preferably on CCSR), run the MAIN LAUNCH SCRIPT, DGRStartIVS.sh.
+ Some sample "run-scripts" have been included to help you get started:
 
-2) The main launch script automatically invokes the MASTER program. Thus, the MASTER
-   is running on LOCAL HARDWARE that you have physical access to.
+Scripts specifically for Michigan Tech's IVS Display Wall:
 
-3) The main launch script also automatically invokes the SLAVE LAUNCH script on the
-   head node of the IVS cluster.
-    2a) The slave launch script automatically launches a copy of the SLAVE program
-        on every available graphics node.
-    2b) The slave launch script then automatically runs a RELAY which is responsible
-        for accepting state data from the MASTER and forwarding it to the SLAVES.
+-  DGRStartIVS.sh 
+-  DGRStartIVS-startslaves.sh
+   note: DGRStartIVS.sh calls DGRStartIVS-startslaves.sh
 
-
+For testing on one machine:
+  
+- DGRStartLocal.sh
+  note: this may need some serious editing for your purposes
+ 
 TO COMPILE THE PACKAGES
 -----------------------
 - Compile the package by typing "make".
-
-- Run STLStartIVS.sh on local hardware (CCSR or a laptop you're running
-  in the IVS lab).
-
+- testing_around.cpp has been provided as an example
+- This code should work with linux and OSX.
+- it has not been tested on windows and will likely not work without modification
 
 DEVELOPING YOUR OWN DISTRIBUTED RENDERING PROGRAMS
 --------------------------------------------------
-This demo illustrates how to accomplish distributed rendering on a graphics
+- The testing_around.cpp demo illustrates how to accomplish distributed rendering on a graphics
 cluster using only UDP packets, without relying on libraries such as
-Chromium. You can use this as an example to add this functionality to your
-own programs. Here is a brief explanation of how it works:
--You must include "DGR_framework" in the files that you wish to use DGR in as well as have "DGR_framework.cpp" in the same area as your source code as well as in your makefile. 
- the master and the slave computer. Look carefully at the preprocessor
- directives in the code. The can come in different varieties such as
-
+Chromium. 
+- DGR is independent of the windows composter or graphics libraries so it allows you to sync renderings between different windows managers and operating systems, having separate slave implementations for each.
+- Because DGR is a memory synchronizer, you can extend this concept for any distributed computation purposes, not just graphics. 
+- You must include "DGR_framework" in the files that you wish to use DGR in as well as compile your code with "DGR_framework.cpp"  
+ 
+- Because the source code for the master and slaves may be almost identical, you can have both binaries compiled out of the same source file. The code below demonstrates how to use preprocessor directives to separate out parts that are different between the master and the slave. I don't think that I have to mention that some care should be taken when choosing how to cut the code up.
+__note:__ _use -DDGR_MASTER=1 with gcc for the MASTER and omit it for the SLAVE._
+````cpp
       #ifdef DGR_MASTER
-        C++ code for the master program
+        //C++ code for the master program
       #else
-        C++ code for the slave program
+        //C++ code for the slave program
       #endif
       
       #ifdef DGR_MASTER
-         C++ code for the master program
+         //C++ code for the master program
       #endif
       
       #ifndef DGR_MASTER
-        C++ code for the SLAVE program. #if*n*def means "if not defined"
+        //C++ code for the SLAVE program. #if*n*def means "if not defined"
       #endif
+````
 
 
--The master's responsibility is to forward its current state data via
-UDP packets. Which data in your program is necessary for the camera to know
-where to display? This is probably position and orientation data. Set up
-the master version of your program to send this data via UDP, using this
-demo as an example. To guarantee good performance, YOU MAY WANT TO CAP THE
+- The way that DGR must be instantiated is different for the MASTER and SLAVE nodes
+(I.E. inside the preprocessor `#ifdef` statements:
+__For the MASTER:__ 
+````cpp
+DGR_framework myDGR = new DGR_framework(char * relay_IP);````
+
+ where `relay_IP` is the relay address in a __character array__
+
+ __For the SLAVE:__
+````cpp
+DGR_framework myDGR = new DGR_framework();````
+
+ which will set the slave listening port to RELAY_LISTEN_PORT defined in DGR_framework.h
+
+ __or__
+
+ If you would like to specify the listening port, do it like this:
+````cpp
+DGR_framework myDGR = new DGR_framework(int slave_listen_port);````
+
+- Variable registration __must __ be in both MASTER and SLAVE code. 
+Future versions will have more robust error checking, but failing to have variables added on both MASTER and SLAVE 
+nodes may cause errors.
+(I.E. not inside of any of the preprocessor "ifdef" statements):
+ 
+ ````cpp
+myDGR->addNode<T>(std::string name, *T data)````
+__note:__ _the above method will only work with POD (Plain Old Data) types _
+
+ In order to sync other types, you have to specialize templates. The following code is an example from fitashape,
+a game made to be run on the Michigan Tech IVS display wall.
+
+ First, _serialize_ the data, copying each into the necessary array:
+ ````cpp
+template<>
+char * MapNode<Player>::getDataString(char* data_array){
+//pulling the data out of the object
+  std::vector<vector3df> dataPos = data->getPositions();
+//putting that data into an array
+  float float_array[12];
+  dataPos[0].getAs3Values( &( float_array[0] ) );
+  dataPos[1].getAs3Values( &( float_array[3] ) );
+  dataPos[2].getAs3Values( &( float_array[6] ) );
+  dataPos[3].getAs3Values( &( float_array[9] ) );
+//copying that data into the given buffer    
+    memcpy(data_array, float_array, dataLength);
+}
+````
+Next, reverse the process and _parse_ the data back into the object from the array that you just made:
+````cpp
+template<>
+void MapNode<Player>::setData(char * data_array){
+  float float_array[24];
+//copy raw data into "datatyped" array
+    memcpy(float_array, data_array, dataLength);
+    std::vector<vector3df> dataPos;
+//object specific parsing
+    dataPos.push_back(vector3df(float_array[0],float_array[1],float_array[2]));
+    dataPos.push_back(vector3df(float_array[3],float_array[4],float_array[5]));
+    dataPos.push_back(vector3df(float_array[6],float_array[7],float_array[8]));
+    dataPos.push_back(vector3df(float_array[9],float_array[10],float_array[11]));
+    data->setNodePositions(dataPos);
+}
+````
+
+- To guarantee good performance, YOU MAY WANT TO CAP THE
 RATE AT WHICH THE MASTER SENDS UDP PACKETS TO ABOUT 60 PER SECOND, but
-feel free to experiment.
+feel free to experiment. 
 
--You will need a simple relay program. The relay's ONLY responsibility is to
+- Please note that for more complex programs, master-defined state machines are necessary. 
+Without them you will veritably run into race conditions. 
+__Software using DGR must be made in a concurrent programming paradigm.__
+
+- You will need a simple relay program. DGR_relay.cpp is provided as an example. The relay's ONLY responsibility is to
 RECEIVE packets from the MASTER and immediately SEND those packets to the
-SLAVES (for greatest efficiency, just broadcast them).
+SLAVES (for greatest efficiency, just broadcast them). DGR_relay accepts the sendto IP address and can also accept
+SLAVE listening ports
 
--The SLAVES receive state data generated by the MASTER and use that to
+- The SLAVES receive state data generated by the MASTER and use that to
 update their displays. When initialized, the slave must be given VIEWPORT
 INFORMATION telling it WHICH PART of the display it is responsible for (e.g.,
 the upper-left, the middle-right, etc.). This is what enables the slaves to
-correctly divide their views using the glFrustum function. See the demo for
-an example.
+correctly divide their views using the glFrustum function (the D3D equivalent is D3DXMatrixPerspectiveOffCenterLH). 
+See the demo for an example.
 
--The relay and slaves are set up to automatically terminate themselves if
+- The relay and slaves are set up to automatically terminate themselves if
 they haven't received any packets in a while, so you should only need to
-worry about closing the master program.
-
+worry about closing the master program. However, killSlaves.sh has been provided as a catchall 
+Michigan Tech's IVS wall if anything should go wrong.
 
 
 SUPPORT
@@ -128,12 +198,8 @@ If you have questions, comments, or need assistance with this demo or
 using the demo to distribute rendering in your own programs, please
 contact
 
-		bjnix at mtu dot edu
-
-            and/or
-
-        jwwalker at mtu dot edu
-
-            and/or
-
-        kuhl at mtu dot edu
+- bjnix at mtu dot edu << currently maintains this repo (_direct questions here first_)
+_and/or_
+- jwwalker at mtu dot edu
+ _and/or_
+- kuhl at mtu dot edu
