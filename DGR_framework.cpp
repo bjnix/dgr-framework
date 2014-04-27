@@ -32,12 +32,11 @@ void * sender(void * data) {
     int node_length;
     unsigned char node_counter;
     //buffer
-    char * packet_buffer;
+    char * packet_buffer= new char[BUFLEN];
     
 
     while (true) 
     {
-        packet_buffer= new char[BUFLEN];
         
         //packet_buffer properties
         packet_length = 2;
@@ -54,10 +53,8 @@ void * sender(void * data) {
 
             MapNodePtr * cur_node = it->second;
             std::string cur_name = cur_node->name;
+            char* cur_data = cur_node->getDataString();
             int cur_data_length = cur_node->dataLength;
-            char* cur_data = new char[cur_data_length]
-
-            cur_node->getDataString(cur_data);
 
             node_length = cur_name.length() + sizeof(char) + cur_data_length;
 
@@ -68,41 +65,21 @@ void * sender(void * data) {
             node_buf[cur_name.length()] = '\0';
             memcpy(node_buf + cur_name.length() + 1, cur_data, cur_data_length);
 
-            //Clean UP!
-            delete[] cur_data;
-
             //message buffer full. send and start a new one.
             if( (packet_length + node_length) > BUFLEN)
             {
                 printf("!!! packet split !!!\n");
-
-                //prepend some useful data
-                packet_buffer[0] = packet_counter;
-                packet_buffer[1] = node_counter;
-
                 if (sendto(s, packet_buffer, packet_length, 0, (struct sockaddr*)&si_other,slen) == -1) 
                     error ("ERROR sendto()");
-                
-                //Clean UP!
-                delete[] node_buf;
-
-                //reset cursors
                 packet_counter ++;
                 packet_length = 2;
                 node_counter = 0;
-
-                //decrement so we don't loose the data that we aren't sending
                 it--;
 
             }
             else
             { // add node to packet buffer
                 memcpy(packet_buffer + packet_length, node_buf, node_length);
-
-                //Clean UP!
-                delete[] node_buf;
-
-                //increment cursors
                 packet_length += node_length;
                 node_counter ++;
             }
@@ -114,7 +91,7 @@ void * sender(void * data) {
         
         if (sendto(s, packet_buffer, BUFLEN, 0, (struct sockaddr*)&si_other,slen) == -1) 
             error ("ERROR sendto()");
-        delete[] packet_buffer;
+
         usleep(32000); /**< 30 fps */
     }
     return 0;
@@ -131,10 +108,10 @@ void * receiver(void * data){
     std::string node_name;
     int node_data_length, packet_cursor;
     unsigned char node_counter,packet_counter;
-    char * packet_buffer;
+    char * packet_buffer = new char[BUFLEN];
 
     while (true){
-        packet_buffer = new char[BUFLEN];
+        
         if(recvfrom(s, packet_buffer, BUFLEN, 0, (struct sockaddr *)&si_other,
             &slen) == -1) error("ERROR recvfrom()");
         
@@ -181,15 +158,9 @@ void * receiver(void * data){
             node_data = packet_buffer + packet_cursor;
                         //set data
             cur_node->setData(node_data);
-
-            //Clean UP!
-            delete[] node_data;
             packet_cursor += node_data_length;
             node_counter --;
-           
         }
-        //Clean UP!
-        delete[] packet_buffer;
     }
 }
 
