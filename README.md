@@ -105,13 +105,15 @@ __note:__ _use -DDGR_MASTER=1 with gcc for the MASTER and omit it for the SLAVE.
 (I.E. inside the preprocessor `#ifdef` statements:
 __For the MASTER:__ 
 ````cpp
-DGR_framework myDGR = new DGR_framework(char * relay_IP);````
+DGR_framework myDGR = new DGR_framework(char * relay_IP);
+````
 
  where `relay_IP` is the relay address in a __character array__
 
  __For the SLAVE:__
 ````cpp
-DGR_framework myDGR = new DGR_framework();````
+DGR_framework myDGR = new DGR_framework();
+````
 
  which will set the slave listening port to RELAY_LISTEN_PORT defined in DGR_framework.h
 
@@ -119,7 +121,8 @@ DGR_framework myDGR = new DGR_framework();````
 
  If you would like to specify the listening port, do it like this:
 ````cpp
-DGR_framework myDGR = new DGR_framework(int slave_listen_port);````
+DGR_framework myDGR = new DGR_framework(int slave_listen_port);
+````
 
 - Variable registration __must __ be in both MASTER and SLAVE code. 
 Future versions will have more robust error checking, but failing to have variables added on both MASTER and SLAVE 
@@ -127,7 +130,8 @@ nodes may cause errors.
 (I.E. not inside of any of the preprocessor "ifdef" statements):
  
  ````cpp
-myDGR->addNode<T>(std::string name, *T data)````
+myDGR->addNode<T>(std::string name, *T data)
+````
 __note:__ _the above method will only work with POD (Plain Old Data) types _
 
  In order to sync other types, you have to specialize templates. The following code is an example from fitashape,
