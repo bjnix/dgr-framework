@@ -38,7 +38,7 @@ public:
 	 *	@return @c 	data_array : a raw char* array of the data 
 	 *	@attention 	virtual function!
 	 */
-    virtual char * getDataString() =0;
+    virtual getDataString(char *) =0;
     
     /** getDataString
 	 *	@arg @c data_array : a raw char* array of the data
@@ -80,15 +80,13 @@ public:
     }//end getData()
 
 	/** getDataString()
-	 *	@arg @c void
+	 *	@arg @c data_array : a raw char* array for the function to fill
 	 *	@return @c 	data_array : a raw char* array of the data 
 	 *	@attention 	One of the two methods (getDataString() and setData(char *) )
 	 *				that need to be specialized if using custom types
 	 */
-    char * getDataString(){
-        char * data_array = new char[dataLength];
-        memcpy(data_array, data, dataLength);        
-        return data_array;
+    char * getDataString(char * data_array){
+        memcpy(data_array, data, dataLength); 
     }//end getDataString()
 
     /** setData(char*)
