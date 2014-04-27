@@ -8,6 +8,11 @@
     #include <GLUT/glut.h>
 #elif __linux
     #include <GL/glut.h>
+#elif defined(_WIN64) || defined(_WIN32)
+	#include <Windows.h>
+	#include<gl\GL.h>
+	#include<gl\GLU.h>
+	#include<GL\freeglut.h>
 #endif
 
 #include <math.h>

@@ -4,20 +4,30 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <time.h>
-#include <pthread.h>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <map>
 #include <typeinfo>
 #include <iostream>
+
+
+#if defined(_WIN64) || defined(_WIN32)
+	#include <windows.h>
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+
+#elif __linux || __unix
+	#include <arpa/inet.h>
+	#include <netinet/in.h>
+	#include <sys/socket.h>
+	#include <unistd.h>
+	#include <pthread.h>
+
+#endif
 
 #define RELAY_LISTEN_PORT 25885	/**< default listening port for relay */
 #define SLAVE_LISTEN_PORT 25884 /**< default listening port for slave */
