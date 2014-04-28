@@ -1,0 +1,119 @@
+Written by Brent Nix (bjnix at mtu dot edu) and James Walker (jwwalker at mtu dot edu), with some modifications by Scott A. Kuhl (kuhl at mtu dot edu)
+
+\subsection*{O\+V\+E\+R\+V\+I\+E\+W }
+
+Originaly meant for distributed graphics rendering, D\+G\+R is a small lightweight general use framework that allows for syncing data between servers with minimal code intrusion. It takes primitive data types by default, but can be configured to accept any data type, structure, or object.
+
+\subsection*{H\+O\+W I\+T W\+O\+R\+K\+S }
+
+Here is an overview of how D\+G\+R works\+:
+
+The M\+A\+S\+T\+E\+R program forwards state data via U\+D\+P packets to the relay program running on the head node of the cluster.
+
+The R\+E\+L\+A\+Y, running on the head node of the cluster, listens for packets from the master program and automatically forwards them to an I\+P address (which could be a broadcast address, and is by default).
+
+The S\+L\+A\+V\+E\+S listen for packets on the appropriate port. Upon receipt, they immediately decode the packets and update their state with the data.
+
+The basic premise here is a master -\/ slave relationship. The specifics of how this relationship is implemented is completely up to you, but examples are provided for some more common constructs. Here are the examples that we have implemented\+:
+
+1) Having a master node that talks to a relay on a cluster head \begin{DoxyVerb}                                                           {slave}
+                                                           {slave}
+                                      {Master}--->{relay}--{slave}
+                                                           {slave}
+                                                           {slave}
+\end{DoxyVerb}
+
+
+2) Running directly off of the cluster head (the relay functionality is moved into the master code) \begin{DoxyVerb}                                                           {slave}
+                                                           {slave}
+                                         {master/relay}----{slave}
+                                                           {slave}
+                                                           {slave}
+\end{DoxyVerb}
+
+
+and finally, a purely local environment allows us to recreate the above situations for local testing purposes. \begin{DoxyVerb}                                                master
+                                      {relay,slave,slave,slave,...}
+
+                                                  or
+
+                                             master/relay
+                                      {slave,slave,slave,slave,...}
+\end{DoxyVerb}
+
+
+Some sample \char`\"{}run-\/scripts\char`\"{} have been included to help you get started\+:
+
+Scripts specifically for Michigan Tech's I\+V\+S Display Wall\+:
+
+
+\begin{DoxyItemize}
+\item D\+G\+R\+Start\+I\+V\+S.\+sh
+\item D\+G\+R\+Start\+I\+V\+S-\/startslaves.\+sh note\+: D\+G\+R\+Start\+I\+V\+S.\+sh calls D\+G\+R\+Start\+I\+V\+S-\/startslaves.\+sh
+\end{DoxyItemize}
+
+For testing on one machine\+:
+
+
+\begin{DoxyItemize}
+\item D\+G\+R\+Start\+Local.\+sh note\+: this may need some serious editing for your purposes
+\end{DoxyItemize}
+
+\subsection*{T\+O C\+O\+M\+P\+I\+L\+E T\+H\+E P\+A\+C\+K\+A\+G\+E\+S }
+
+
+\begin{DoxyItemize}
+\item Compile the package by typing \char`\"{}make\char`\"{}.
+\item testing\+\_\+around.\+cpp has been provided as an example
+\item This code should work with linux and O\+S\+X.
+\item it has not been tested on windows and will likely not work without modification
+\end{DoxyItemize}
+
+\subsection*{D\+E\+V\+E\+L\+O\+P\+I\+N\+G Y\+O\+U\+R O\+W\+N D\+I\+S\+T\+R\+I\+B\+U\+T\+E\+D R\+E\+N\+D\+E\+R\+I\+N\+G P\+R\+O\+G\+R\+A\+M\+S }
+
+
+\begin{DoxyItemize}
+\item The testing\+\_\+around.\+cpp demo illustrates how to accomplish distributed rendering on a graphics cluster using only U\+D\+P packets, without relying on libraries such as Chromium.
+\item D\+G\+R is independent of the windows composter or graphics libraries so it allows you to sync renderings between different windows managers and operating systems, having separate slave implementations for each.
+\item Because D\+G\+R is a memory synchronizer, you can extend this concept for any distributed computation purposes, not just graphics.
+\item You must include \char`\"{}\+D\+G\+R\+\_\+framework\char`\"{} in the files that you wish to use D\+G\+R in as well as compile your code with \char`\"{}\+D\+G\+R\+\_\+framework.\+cpp\char`\"{}
+\item Because the source code for the master and slaves may be almost identical, you can have both binaries compiled out of the same source file. The code below demonstrates how to use preprocessor directives to separate out parts that are different between the master and the slave. I don't think that I have to mention that some care should be taken when choosing how to cut the code up. {\bfseries note\+:} {\itshape use -\/\+D\+D\+G\+R\+\_\+\+M\+A\+S\+T\+E\+R=1 with gcc for the M\+A\+S\+T\+E\+R and omit it for the S\+L\+A\+V\+E.} ````cpp \#ifdef D\+G\+R\+\_\+\+M\+A\+S\+T\+E\+R //\+C++ code for the master program \#else //\+C++ code for the slave program \#endif
+
+\#ifdef D\+G\+R\+\_\+\+M\+A\+S\+T\+E\+R //\+C++ code for the master program \#endif
+
+\#ifndef D\+G\+R\+\_\+\+M\+A\+S\+T\+E\+R //\+C++ code for the S\+L\+A\+V\+E program. \#if$\ast$n$\ast$def means \char`\"{}if not defined\char`\"{} \#endif ````
+\item The way that D\+G\+R must be instantiated is different for the M\+A\+S\+T\+E\+R and S\+L\+A\+V\+E nodes (I.\+E. inside the preprocessor {\ttfamily \#ifdef} statements\+: {\bfseries For the M\+A\+S\+T\+E\+R\+:} ````cpp \hyperlink{classDGR__framework}{D\+G\+R\+\_\+framework} my\+D\+G\+R = new \hyperlink{classDGR__framework}{D\+G\+R\+\_\+framework(char $\ast$ relay\+\_\+\+I\+P)}; ````
+
+where {\ttfamily relay\+\_\+\+I\+P} is the relay address in a {\bfseries character array}
+
+{\bfseries For the S\+L\+A\+V\+E\+:} ````cpp \hyperlink{classDGR__framework}{D\+G\+R\+\_\+framework} my\+D\+G\+R = new \hyperlink{classDGR__framework}{D\+G\+R\+\_\+framework()}; ````
+
+which will set the slave listening port to R\+E\+L\+A\+Y\+\_\+\+L\+I\+S\+T\+E\+N\+\_\+\+P\+O\+R\+T defined in \hyperlink{DGR__framework_8h_source}{D\+G\+R\+\_\+framework.\+h}
+
+{\bfseries or}
+
+If you would like to specify the listening port, do it like this\+: ````cpp \hyperlink{classDGR__framework}{D\+G\+R\+\_\+framework} my\+D\+G\+R = new \hyperlink{classDGR__framework}{D\+G\+R\+\_\+framework(int slave\+\_\+listen\+\_\+port)}; ````
+\item Variable registration \+\_\+\+\_\+must \+\_\+\+\_\+ be in both M\+A\+S\+T\+E\+R and S\+L\+A\+V\+E code. Future versions will have more robust error checking, but failing to have variables added on both M\+A\+S\+T\+E\+R and S\+L\+A\+V\+E nodes may cause errors. (I.\+E. not inside of any of the preprocessor \char`\"{}ifdef\char`\"{} statements)\+:
+
+````cpp my\+D\+G\+R-\/$>$add\+Node$<$\+T$>$(std\+::string name, $<$em$>$\+T data) ```` {\bfseries note\+:} \+\_\+the above method will only work with P\+O\+D (Plain Old Data) types \+\_\+
+
+In order to sync other types, you have to specialize templates. The following code is an example from fitashape, a game made to be run on the Michigan Tech I\+V\+S display wall.
+
+First, {\itshape serialize} the data, copying each into the necessary array\+: ````cpp template$<$$>$ char $\ast$ \hyperlink{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}{Map\+Node$<$\+Player$>$\+::get\+Data\+String}(char data\+\_\+array)\{ //pulling the data out of the object std\+::vector$<$vector3df$>$ data\+Pos = data-\/$>$get\+Positions(); //putting that data into an array float float\+\_\+array\mbox{[}12\mbox{]}; data\+Pos\mbox{[}0\mbox{]}.get\+As3\+Values( \&( float\+\_\+array\mbox{[}0\mbox{]} ) ); data\+Pos\mbox{[}1\mbox{]}.get\+As3\+Values( \&( float\+\_\+array\mbox{[}3\mbox{]} ) ); data\+Pos\mbox{[}2\mbox{]}.get\+As3\+Values( \&( float\+\_\+array\mbox{[}6\mbox{]} ) ); data\+Pos\mbox{[}3\mbox{]}.get\+As3\+Values( \&( float\+\_\+array\mbox{[}9\mbox{]} ) ); //copying that data into the given buffer memcpy(data\+\_\+array, float\+\_\+array, data\+Length); \} ```` Next, reverse the process and {\itshape parse} the data back into the object from the array that you just made\+: ````cpp template$<$$>$ void \hyperlink{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}{Map\+Node$<$\+Player$>$\+::set\+Data(char $\ast$ data\+\_\+array)}\{ float float\+\_\+array\mbox{[}24\mbox{]}; //copy raw data into \char`\"{}datatyped\char`\"{} array memcpy(float\+\_\+array, data\+\_\+array, data\+Length); std\+::vector$<$vector3df$>$ data\+Pos; //object specific parsing data\+Pos.\+push\+\_\+back(vector3df(float\+\_\+array\mbox{[}0\mbox{]},float\+\_\+array\mbox{[}1\mbox{]},float\+\_\+array\mbox{[}2\mbox{]})); data\+Pos.\+push\+\_\+back(vector3df(float\+\_\+array\mbox{[}3\mbox{]},float\+\_\+array\mbox{[}4\mbox{]},float\+\_\+array\mbox{[}5\mbox{]})); data\+Pos.\+push\+\_\+back(vector3df(float\+\_\+array\mbox{[}6\mbox{]},float\+\_\+array\mbox{[}7\mbox{]},float\+\_\+array\mbox{[}8\mbox{]})); data\+Pos.\+push\+\_\+back(vector3df(float\+\_\+array\mbox{[}9\mbox{]},float\+\_\+array\mbox{[}10\mbox{]},float\+\_\+array\mbox{[}11\mbox{]})); data-\/$>$set\+Node\+Positions(data\+Pos); \} ````
+\item To guarantee good performance, Y\+O\+U M\+A\+Y W\+A\+N\+T T\+O C\+A\+P T\+H\+E R\+A\+T\+E A\+T W\+H\+I\+C\+H T\+H\+E M\+A\+S\+T\+E\+R S\+E\+N\+D\+S U\+D\+P P\+A\+C\+K\+E\+T\+S T\+O A\+B\+O\+U\+T 60 P\+E\+R S\+E\+C\+O\+N\+D, but feel free to experiment.
+\item Please note that for more complex programs, master-\/defined state machines are necessary. Without them you will veritably run into race conditions. {\bfseries Software using D\+G\+R must be made in a concurrent programming paradigm.}
+\item You will need a simple relay program. D\+G\+R\+\_\+relay.\+cpp is provided as an example. The relay's O\+N\+L\+Y responsibility is to R\+E\+C\+E\+I\+V\+E packets from the M\+A\+S\+T\+E\+R and immediately S\+E\+N\+D those packets to the S\+L\+A\+V\+E\+S (for greatest efficiency, just broadcast them). D\+G\+R\+\_\+relay accepts the sendto I\+P address and can also accept S\+L\+A\+V\+E listening ports
+\item The S\+L\+A\+V\+E\+S receive state data generated by the M\+A\+S\+T\+E\+R and use that to update their displays. When initialized, the slave must be given V\+I\+E\+W\+P\+O\+R\+T I\+N\+F\+O\+R\+M\+A\+T\+I\+O\+N telling it W\+H\+I\+C\+H P\+A\+R\+T of the display it is responsible for (e.\+g., the upper-\/left, the middle-\/right, etc.). This is what enables the slaves to correctly divide their views using the gl\+Frustum function (the D3\+D equivalent is D3\+D\+X\+Matrix\+Perspective\+Off\+Center\+L\+H). See the demo for an example.
+\item The relay and slaves are set up to automatically terminate themselves if they haven't received any packets in a while, so you should only need to worry about closing the master program. However, kill\+Slaves.\+sh has been provided as a catchall Michigan Tech's I\+V\+S wall if anything should go wrong.
+\end{DoxyItemize}
+
+\subsection*{S\+U\+P\+P\+O\+R\+T }
+
+If you have questions, comments, or need assistance with this demo or using the demo to distribute rendering in your own programs, please contact
+
+
+\begin{DoxyItemize}
+\item bjnix at mtu dot edu $<$$<$ currently maintains this repo ({\itshape direct questions here first}) {\itshape and/or}
+\item jwwalker at mtu dot edu {\itshape and/or}
+\item kuhl at mtu dot edu 
+\end{DoxyItemize}

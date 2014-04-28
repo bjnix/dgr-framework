@@ -1,0 +1,111 @@
+\hypertarget{classMapNodePtr}{\section{Map\+Node\+Ptr Class Reference}
+\label{classMapNodePtr}\index{Map\+Node\+Ptr@{Map\+Node\+Ptr}}
+}
+
+
+{\ttfamily \#include $<$D\+G\+R\+\_\+framework.\+h$>$}
+
+Inheritance diagram for Map\+Node\+Ptr\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classMapNodePtr}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual char $\ast$ \hyperlink{classMapNodePtr_a2d7366a2f34c69877a05e8afbaa92d01}{get\+Data\+String} ()=0
+\item 
+virtual void \hyperlink{classMapNodePtr_aefd9101ca6bee00cd3304e72b2ca50bb}{set\+Data} (char $\ast$)=0
+\item 
+\hyperlink{classMapNodePtr_ace653557c82003ba13ad9aa663bdc25f}{Map\+Node\+Ptr} (std\+::string n)
+\item 
+\hypertarget{classMapNodePtr_ab5ed81d4fe235d9df10a66088ed1ef76}{{\bfseries Map\+Node\+Ptr} (std\+::string n, size\+\_\+t d\+L)}\label{classMapNodePtr_ab5ed81d4fe235d9df10a66088ed1ef76}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \hyperlink{classMapNodePtr_a928378e3e8b1661858463cedc8e721c9}{name}
+\item 
+size\+\_\+t \hyperlink{classMapNodePtr_ac90162a897b772218843f49b4b08dc06}{data\+Length}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{classMapNodePtr}{Map\+Node\+Ptr} Class  Class that allows for us to have a multi-\/type map. Anything that goes into the input map must extend this class \begin{DoxyAttention}{Attention}
+contains virtual functions and is intended to be extended by other classes. Do not try to use without pointing to a \hyperlink{classMapNode}{Map\+Node} 
+\end{DoxyAttention}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classMapNodePtr_ace653557c82003ba13ad9aa663bdc25f}{\index{Map\+Node\+Ptr@{Map\+Node\+Ptr}!Map\+Node\+Ptr@{Map\+Node\+Ptr}}
+\index{Map\+Node\+Ptr@{Map\+Node\+Ptr}!Map\+Node\+Ptr@{Map\+Node\+Ptr}}
+\subsubsection[{Map\+Node\+Ptr}]{\setlength{\rightskip}{0pt plus 5cm}Map\+Node\+Ptr\+::\+Map\+Node\+Ptr (
+\begin{DoxyParamCaption}
+\item[{std\+::string}]{n}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classMapNodePtr_ace653557c82003ba13ad9aa663bdc25f}
+\hyperlink{classMapNodePtr}{Map\+Node\+Ptr(string)} \begin{DoxyItemize}
+\item {\ttfamily n} \+: name of node \begin{DoxyReturn}{Returns}
+{\ttfamily void} 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+only use if you assign data\+Length a value 
+\end{DoxyAttention}
+\end{DoxyItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classMapNodePtr_a2d7366a2f34c69877a05e8afbaa92d01}{\index{Map\+Node\+Ptr@{Map\+Node\+Ptr}!get\+Data\+String@{get\+Data\+String}}
+\index{get\+Data\+String@{get\+Data\+String}!Map\+Node\+Ptr@{Map\+Node\+Ptr}}
+\subsubsection[{get\+Data\+String}]{\setlength{\rightskip}{0pt plus 5cm}virtual char$\ast$ Map\+Node\+Ptr\+::get\+Data\+String (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [pure virtual]}}}\label{classMapNodePtr_a2d7366a2f34c69877a05e8afbaa92d01}
+get\+Data\+String \begin{DoxyItemize}
+\item {\ttfamily void} \begin{DoxyReturn}{Returns}
+{\ttfamily data\+\_\+array} \+: a raw char$\ast$ array of the data 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+virtual function! 
+\end{DoxyAttention}
+\end{DoxyItemize}
+
+
+Implemented in \hyperlink{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}{Map\+Node$<$ T $>$}.
+
+\hypertarget{classMapNodePtr_aefd9101ca6bee00cd3304e72b2ca50bb}{\index{Map\+Node\+Ptr@{Map\+Node\+Ptr}!set\+Data@{set\+Data}}
+\index{set\+Data@{set\+Data}!Map\+Node\+Ptr@{Map\+Node\+Ptr}}
+\subsubsection[{set\+Data}]{\setlength{\rightskip}{0pt plus 5cm}virtual void Map\+Node\+Ptr\+::set\+Data (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [pure virtual]}}}\label{classMapNodePtr_aefd9101ca6bee00cd3304e72b2ca50bb}
+get\+Data\+String \begin{DoxyItemize}
+\item {\ttfamily data\+\_\+array} \+: a raw char$\ast$ array of the data \begin{DoxyReturn}{Returns}
+{\ttfamily void} 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+virtual function! 
+\end{DoxyAttention}
+\end{DoxyItemize}
+
+
+Implemented in \hyperlink{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}{Map\+Node$<$ T $>$}.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classMapNodePtr_ac90162a897b772218843f49b4b08dc06}{\index{Map\+Node\+Ptr@{Map\+Node\+Ptr}!data\+Length@{data\+Length}}
+\index{data\+Length@{data\+Length}!Map\+Node\+Ptr@{Map\+Node\+Ptr}}
+\subsubsection[{data\+Length}]{\setlength{\rightskip}{0pt plus 5cm}size\+\_\+t Map\+Node\+Ptr\+::data\+Length}}\label{classMapNodePtr_ac90162a897b772218843f49b4b08dc06}
+length of array holding serialized data \hypertarget{classMapNodePtr_a928378e3e8b1661858463cedc8e721c9}{\index{Map\+Node\+Ptr@{Map\+Node\+Ptr}!name@{name}}
+\index{name@{name}!Map\+Node\+Ptr@{Map\+Node\+Ptr}}
+\subsubsection[{name}]{\setlength{\rightskip}{0pt plus 5cm}std\+::string Map\+Node\+Ptr\+::name}}\label{classMapNodePtr_a928378e3e8b1661858463cedc8e721c9}
+name of data node 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+D\+G\+R\+\_\+framework.\+h\end{DoxyCompactItemize}

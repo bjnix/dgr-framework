@@ -1,0 +1,140 @@
+\hypertarget{classMapNode}{\section{Map\+Node$<$ T $>$ Class Template Reference}
+\label{classMapNode}\index{Map\+Node$<$ T $>$@{Map\+Node$<$ T $>$}}
+}
+
+
+{\ttfamily \#include $<$D\+G\+R\+\_\+framework.\+h$>$}
+
+Inheritance diagram for Map\+Node$<$ T $>$\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classMapNode}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+T $\ast$ \hyperlink{classMapNode_aac2d9cb3f7ae4f2e39a4ceaff588318c}{get\+Data} ()
+\item 
+char $\ast$ \hyperlink{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}{get\+Data\+String} ()
+\item 
+void \hyperlink{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}{set\+Data} (char $\ast$data\+\_\+array)
+\item 
+\hyperlink{classMapNode_aa1dc56c3ee0462fd30f11f70a758002d}{Map\+Node} (std\+::string n, T $\ast$d)
+\item 
+\hyperlink{classMapNode_a56f35b20fd5e5bcc8425640f95512fd9}{Map\+Node} (std\+::string n, T $\ast$d, size\+\_\+t d\+L)
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+T $\ast$ \hyperlink{classMapNode_a61524bb1f8518fb99166e8880b065c9e}{data}
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$class Map\+Node$<$ T $>$}
+
+\hyperlink{classMapNode}{Map\+Node} Class  Template that catalogues and serializes an object of any type as well as take in a raw char$\ast$ representation of that data and parse it back into the correct format \begin{DoxyAttention}{Attention}
+only works with P\+O\+D types without padded data (i.\+e no structs, unions) if an object is not guaranteed to have contiguous data, Y\+O\+U M\+U\+S\+T specialize the template in order to use it 
+\end{DoxyAttention}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classMapNode_aa1dc56c3ee0462fd30f11f70a758002d}{\index{Map\+Node@{Map\+Node}!Map\+Node@{Map\+Node}}
+\index{Map\+Node@{Map\+Node}!Map\+Node@{Map\+Node}}
+\subsubsection[{Map\+Node}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ {\bf Map\+Node}$<$ T $>$\+::{\bf Map\+Node} (
+\begin{DoxyParamCaption}
+\item[{std\+::string}]{n, }
+\item[{T $\ast$}]{d}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classMapNode_aa1dc56c3ee0462fd30f11f70a758002d}
+\hyperlink{classMapNode}{Map\+Node(string,\+T$\ast$)} with implicit data length \begin{DoxyItemize}
+\item {\ttfamily n} \+: name of node \item {\ttfamily d} \+: pointer to the node data \begin{DoxyReturn}{Returns}
+{\ttfamily void} 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+only use if you are sure that sizeof(datatype) will give an accurate size 
+\end{DoxyAttention}
+\end{DoxyItemize}
+\hypertarget{classMapNode_a56f35b20fd5e5bcc8425640f95512fd9}{\index{Map\+Node@{Map\+Node}!Map\+Node@{Map\+Node}}
+\index{Map\+Node@{Map\+Node}!Map\+Node@{Map\+Node}}
+\subsubsection[{Map\+Node}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ {\bf Map\+Node}$<$ T $>$\+::{\bf Map\+Node} (
+\begin{DoxyParamCaption}
+\item[{std\+::string}]{n, }
+\item[{T $\ast$}]{d, }
+\item[{size\+\_\+t}]{d\+L}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classMapNode_a56f35b20fd5e5bcc8425640f95512fd9}
+\hyperlink{classMapNode}{Map\+Node(string,\+T$\ast$,size\+\_\+t)} with explicit data length \begin{DoxyItemize}
+\item {\ttfamily n} \+: name of node \item {\ttfamily d} \+: pointer to the node data \item {\ttfamily d\+L} \+: length of array needed to hold serialized data \begin{DoxyReturn}{Returns}
+{\ttfamily void} 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+data length is N\+O\+T N\+E\+C\+E\+S\+S\+A\+R\+I\+L\+Y the size of the object, it is the length of the array needed to hold the serialized data 
+\end{DoxyAttention}
+\end{DoxyItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classMapNode_aac2d9cb3f7ae4f2e39a4ceaff588318c}{\index{Map\+Node@{Map\+Node}!get\+Data@{get\+Data}}
+\index{get\+Data@{get\+Data}!Map\+Node@{Map\+Node}}
+\subsubsection[{get\+Data}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ T$\ast$ {\bf Map\+Node}$<$ T $>$\+::get\+Data (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classMapNode_aac2d9cb3f7ae4f2e39a4ceaff588318c}
+\hyperlink{classMapNode_aac2d9cb3f7ae4f2e39a4ceaff588318c}{get\+Data()} \begin{DoxyItemize}
+\item {\ttfamily void} \begin{DoxyReturn}{Returns}
+{\ttfamily \&data} \+: a pointer to the node data 
+\end{DoxyReturn}
+\end{DoxyItemize}
+\hypertarget{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}{\index{Map\+Node@{Map\+Node}!get\+Data\+String@{get\+Data\+String}}
+\index{get\+Data\+String@{get\+Data\+String}!Map\+Node@{Map\+Node}}
+\subsubsection[{get\+Data\+String}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ char$\ast$ {\bf Map\+Node}$<$ T $>$\+::get\+Data\+String (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}}\label{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}
+\hyperlink{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}{get\+Data\+String()} \begin{DoxyItemize}
+\item {\ttfamily void} \begin{DoxyReturn}{Returns}
+{\ttfamily data\+\_\+array} \+: a raw char$\ast$ array of the data 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+One of the two methods (\hyperlink{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}{get\+Data\+String()} and \hyperlink{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}{set\+Data(char $\ast$)} ) that need to be specialized if using custom types 
+\end{DoxyAttention}
+\end{DoxyItemize}
+
+
+Implements \hyperlink{classMapNodePtr_a2d7366a2f34c69877a05e8afbaa92d01}{Map\+Node\+Ptr}.
+
+\hypertarget{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}{\index{Map\+Node@{Map\+Node}!set\+Data@{set\+Data}}
+\index{set\+Data@{set\+Data}!Map\+Node@{Map\+Node}}
+\subsubsection[{set\+Data}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ void {\bf Map\+Node}$<$ T $>$\+::set\+Data (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{data\+\_\+array}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}}\label{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}
+\hyperlink{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}{set\+Data(char$\ast$)} \begin{DoxyItemize}
+\item {\ttfamily data\+\_\+array} \+: a raw char$\ast$ array of the data \begin{DoxyReturn}{Returns}
+{\ttfamily void} 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+One of the two methods (\hyperlink{classMapNode_aec1d6c32ce5cf507bdf8459cdd9a00b8}{get\+Data\+String()} and \hyperlink{classMapNode_a78cc24f37a1d1b4bda5075284ff53f92}{set\+Data(char $\ast$)} ) that need to be specialized if using custom types 
+\end{DoxyAttention}
+\end{DoxyItemize}
+
+
+Implements \hyperlink{classMapNodePtr_aefd9101ca6bee00cd3304e72b2ca50bb}{Map\+Node\+Ptr}.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classMapNode_a61524bb1f8518fb99166e8880b065c9e}{\index{Map\+Node@{Map\+Node}!data@{data}}
+\index{data@{data}!Map\+Node@{Map\+Node}}
+\subsubsection[{data}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ T$\ast$ {\bf Map\+Node}$<$ T $>$\+::data\hspace{0.3cm}{\ttfamily [protected]}}}\label{classMapNode_a61524bb1f8518fb99166e8880b065c9e}
+pointer to data 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+D\+G\+R\+\_\+framework.\+h\end{DoxyCompactItemize}

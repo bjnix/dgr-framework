@@ -1,0 +1,111 @@
+\hypertarget{classDGR__framework}{\section{D\+G\+R\+\_\+framework Class Reference}
+\label{classDGR__framework}\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+}
+
+
+{\ttfamily \#include $<$D\+G\+R\+\_\+framework.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classDGR__framework_a3c397bacb6d9f5415c1ccd91d68da842}{D\+G\+R\+\_\+framework} (char $\ast$r\+\_\+\+I\+P)
+\item 
+\hyperlink{classDGR__framework_ae7789d2c0b2e6a3f5b713ad5b87dda49}{D\+G\+R\+\_\+framework} (int s\+\_\+listen\+\_\+port)
+\item 
+\hyperlink{classDGR__framework_a30d61a56e39d2e240da947a0fa1412b4}{D\+G\+R\+\_\+framework} ()
+\item 
+\hyperlink{classDGR__framework_a626da0fafccee9e655bcb71691b17f87}{$\sim$\+D\+G\+R\+\_\+framework} ()
+\item 
+{\footnotesize template$<$typename T $>$ }\\void \hyperlink{classDGR__framework_aadf62190c414a2b7799d630d807cd075}{add\+Node} (std\+::string n, T $\ast$d)
+\item 
+{\footnotesize template$<$typename T $>$ }\\void \hyperlink{classDGR__framework_ab669babf74d62fb60b46ef31439cb63a}{add\+Node} (std\+::string n, T $\ast$d, size\+\_\+t d\+L)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{classDGR__framework}{D\+G\+R\+\_\+framework} Class A simple framework that provides lightweight distributed variable management 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classDGR__framework_a3c397bacb6d9f5415c1ccd91d68da842}{\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\subsubsection[{D\+G\+R\+\_\+framework}]{\setlength{\rightskip}{0pt plus 5cm}D\+G\+R\+\_\+framework\+::\+D\+G\+R\+\_\+framework (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{r\+\_\+\+I\+P}
+\end{DoxyParamCaption}
+)}}\label{classDGR__framework_a3c397bacb6d9f5415c1ccd91d68da842}
+\hyperlink{classDGR__framework_a3c397bacb6d9f5415c1ccd91d68da842}{D\+G\+R\+\_\+framework(char$\ast$)} @ arg {\ttfamily r\+\_\+\+I\+P} \+: the I\+P address of the relay node \begin{DoxyAttention}{Attention}
+use this in conjuction with a relay node 
+\end{DoxyAttention}
+\hypertarget{classDGR__framework_ae7789d2c0b2e6a3f5b713ad5b87dda49}{\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\subsubsection[{D\+G\+R\+\_\+framework}]{\setlength{\rightskip}{0pt plus 5cm}D\+G\+R\+\_\+framework\+::\+D\+G\+R\+\_\+framework (
+\begin{DoxyParamCaption}
+\item[{int}]{s\+\_\+listen\+\_\+port}
+\end{DoxyParamCaption}
+)}}\label{classDGR__framework_ae7789d2c0b2e6a3f5b713ad5b87dda49}
+\hyperlink{classDGR__framework_ae7789d2c0b2e6a3f5b713ad5b87dda49}{D\+G\+R\+\_\+framework(int)} slave with specific listening port \begin{DoxyItemize}
+\item {\ttfamily s\+\_\+listen\+\_\+port} \+: the listening port on the slave node to be opened \begin{DoxyAttention}{Attention}
+use this if you are running multiple slaves on the same node 
+\end{DoxyAttention}
+\end{DoxyItemize}
+\hypertarget{classDGR__framework_a30d61a56e39d2e240da947a0fa1412b4}{\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\subsubsection[{D\+G\+R\+\_\+framework}]{\setlength{\rightskip}{0pt plus 5cm}D\+G\+R\+\_\+framework\+::\+D\+G\+R\+\_\+framework (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classDGR__framework_a30d61a56e39d2e240da947a0fa1412b4}
+\hyperlink{classDGR__framework_a30d61a56e39d2e240da947a0fa1412b4}{D\+G\+R\+\_\+framework()} slave with default (R\+E\+L\+A\+Y\+\_\+\+L\+I\+S\+T\+E\+N\+\_\+\+P\+O\+R\+T) listening port \begin{DoxyItemize}
+\item {\ttfamily s\+\_\+listen\+\_\+port} \+: the listening port on the slave node to be opened \begin{DoxyAttention}{Attention}
+use this if you are running one slave on each node 
+\end{DoxyAttention}
+\end{DoxyItemize}
+\hypertarget{classDGR__framework_a626da0fafccee9e655bcb71691b17f87}{\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!````~D\+G\+R\+\_\+framework@{$\sim$\+D\+G\+R\+\_\+framework}}
+\index{````~D\+G\+R\+\_\+framework@{$\sim$\+D\+G\+R\+\_\+framework}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\subsubsection[{$\sim$\+D\+G\+R\+\_\+framework}]{\setlength{\rightskip}{0pt plus 5cm}D\+G\+R\+\_\+framework\+::$\sim$\+D\+G\+R\+\_\+framework (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classDGR__framework_a626da0fafccee9e655bcb71691b17f87}
+closes socket 
+
+\subsection{Member Function Documentation}
+\hypertarget{classDGR__framework_aadf62190c414a2b7799d630d807cd075}{\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!add\+Node@{add\+Node}}
+\index{add\+Node@{add\+Node}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\subsubsection[{add\+Node}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T $>$ void D\+G\+R\+\_\+framework\+::add\+Node (
+\begin{DoxyParamCaption}
+\item[{std\+::string}]{n, }
+\item[{T $\ast$}]{d}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classDGR__framework_aadf62190c414a2b7799d630d807cd075}
+add\+Node(string,\+T$\ast$) with implicit data length \begin{DoxyItemize}
+\item {\ttfamily n} \+: name of node \item {\ttfamily d} \+: pointer to the node data \begin{DoxyReturn}{Returns}
+{\ttfamily void} 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+only use if you are sure that sizeof(datatype) will give an accurate size 
+\end{DoxyAttention}
+\end{DoxyItemize}
+\hypertarget{classDGR__framework_ab669babf74d62fb60b46ef31439cb63a}{\index{D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}!add\+Node@{add\+Node}}
+\index{add\+Node@{add\+Node}!D\+G\+R\+\_\+framework@{D\+G\+R\+\_\+framework}}
+\subsubsection[{add\+Node}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T $>$ void D\+G\+R\+\_\+framework\+::add\+Node (
+\begin{DoxyParamCaption}
+\item[{std\+::string}]{n, }
+\item[{T $\ast$}]{d, }
+\item[{size\+\_\+t}]{d\+L}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classDGR__framework_ab669babf74d62fb60b46ef31439cb63a}
+add\+Node(string,\+T$\ast$,size\+\_\+t) with explicit data length \begin{DoxyItemize}
+\item {\ttfamily n} \+: name of node \item {\ttfamily d} \+: pointer to the node data \item {\ttfamily d\+L} \+: length of array needed to hold serialized data \begin{DoxyReturn}{Returns}
+{\ttfamily void} 
+\end{DoxyReturn}
+\begin{DoxyAttention}{Attention}
+data length is N\+O\+T N\+E\+C\+E\+S\+S\+A\+R\+I\+L\+Y the size of the object, it is the length of the array needed to hold the serialized data 
+\end{DoxyAttention}
+\end{DoxyItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+D\+G\+R\+\_\+framework.\+h\item 
+D\+G\+R\+\_\+framework.\+cpp\end{DoxyCompactItemize}
